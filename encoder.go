@@ -167,7 +167,11 @@ func (enc *Encoder) encodeArrayAsECMAArray(rv reflect.Value) error {
 		}
 	}
 
-	return nil
+	if err := enc.writeUTF8(""); err != nil { // utf-8-empty
+		return err
+	}
+
+	return enc.encodeObjectEnd()
 }
 
 func (enc *Encoder) encodeNull() error {

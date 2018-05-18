@@ -17,9 +17,12 @@ var testCases = []testCase{
 	testCase{
 		Name:  "Number(Int)",
 		Value: float64(10),
-		// 0x00: Number Marker
-		// 0x40, 0x24, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00: Value(10: double) BigEndian
-		Binary: []byte{0x00, 0x40, 0x24, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+		Binary: []byte{
+			// Number Marker
+			0x00,
+			// Value(10: double) BigEndian
+			0x40, 0x24, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		},
 	},
 	testCase{
 		Name:  "String",
@@ -35,33 +38,79 @@ var testCases = []testCase{
 			"a": "s",
 			"b": float64(42),
 		},
-		// 0x03: Object Marker
-		//   0x00, 0x01: Length(1: u16) BigEndian
-		//   0x61: Key(a: []byte)
-		//     0x02: String Marker
-		//     0x00, 0x01: Length(1: u16) BigEndian
-		//     0x73: Value(s: []byte)
-		//   0x00, 0x01: Length(1: u16) BigEndian
-		//   0x62: Key(b: []byte)
-		//     0x00: Number Marker
-		//     0x40, 0x45, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00: Value(42: double) BigEndian
-		//   0x00, 0x00: Length(0: u16) BigEndian
-		//   (empty)
-		//     0x09: ObjectEndMarker
 		Binary: []byte{
+			// Object Marker
 			0x03,
-			0x00, 0x01, 0x61,
-			0x02, 0x00, 0x01, 0x73,
-			0x00, 0x01, 0x62,
-			0x00, 0x40, 0x45, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			// - Length(1: u16) BigEndian
+			0x00, 0x01,
+			//   Key(a: []byte)
+			0x61,
+			//   - String Marker
+			0x02,
+			//     Length(1: u16) BigEndian
+			0x00, 0x01,
+			//     Value(s: []byte)
+			0x73,
+			// - Length(1: u16) BigEndian
+			0x00, 0x01,
+			//   Key(b: []byte)
+			0x62,
+			//   - Number Marker
+			0x00,
+			//     Value(42: double) BigEndian
+			0x40, 0x45, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			// - Length(0: u16) BigEndian
 			0x00, 0x00,
+			//   Key(empty)
+			//   - ObjectEndMarker
 			0x09,
 		},
 	},
 	testCase{
 		Name:  "Nil",
 		Value: nil,
-		// 0x05: Null Marker
-		Binary: []byte{0x05},
+		Binary: []byte{
+			// Null Marker
+			0x05,
+		},
+	},
+	testCase{
+		Name: "ECMA Array",
+		Value: []struct {
+			Key   string `amf0:"ecma"`
+			Value interface{}
+		}{
+			{Key: "a", Value: "str"},
+			{Key: "b", Value: 10},
+		},
+		Binary: []byte{
+			// ECMA Array Marker
+			0x08,
+			// Associative count(2: u32) BigEndian
+			0x00, 0x00, 0x00, 0x02,
+			// - Length(1: u16)
+			0x00, 0x01,
+			//   Key(a: []byte)
+			0x61,
+			//   - String Marker
+			0x02,
+			//     Length(3: u16) BigEndian
+			0x00, 0x03,
+			//     Value(abc: []byte)
+			0x73, 0x74, 0x72,
+			// - Length(1: u16)
+			0x00, 0x01,
+			//   Key(b: []byte)
+			0x62,
+			//   - Number Marker
+			0x00,
+			//     Value(10: double) BigEndian
+			0x40, 0x24, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			// - Length(0: u16) BigEndian
+			0x00, 0x00,
+			//   Key(empty)
+			//   - ObjectEndMarker
+			0x09,
+		},
 	},
 }
