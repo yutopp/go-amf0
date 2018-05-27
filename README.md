@@ -1,6 +1,6 @@
-# amf0-go
+# go-amf0
 
-Go implementation of AMF0 decoder/encoder.
+AMF0 decoder/encoder library written in Go.
 
 - [ ] Decoder
   - [ ] Number
@@ -41,9 +41,15 @@ Go implementation of AMF0 decoder/encoder.
 - [ ] Documents
 - [ ] Optimize
 
-# Licence
+## Installation
 
-[Boost Software License, Version 1.0](https://www.boost.org/LICENSE_1_0.txt)
+```
+go get github.com/yutopp/go-amf0
+```
+
+## Licence
+
+[Boost Software License - Version 1.0](./LICENSE_1_0.txt)
 
 # References
 
