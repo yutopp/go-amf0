@@ -54,3 +54,17 @@ func TestDecodeNumber(t *testing.T) {
 		assert.Equal(t, float64(10), v)
 	})
 }
+
+func TestDecodeNil(t *testing.T) {
+	bin := []byte{0x05} // Null
+
+	t.Run("assignable", func(t *testing.T) {
+		buf := bytes.NewBuffer(bin)
+		dec := NewDecoder(buf)
+
+		var v map[int]int
+		err := dec.Decode(&v)
+		assert.Nil(t, err)
+		assert.Equal(t, nil, v)
+	})
+}

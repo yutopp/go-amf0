@@ -47,6 +47,8 @@ func (dec *Decoder) decode(rv reflect.Value) error {
 		return dec.decodeObject(rv)
 	case MarkerNull:
 		return dec.decodeNull(rv)
+	case MarkerEcmaArray:
+		return dec.decodeECMAArray(rv)
 	}
 
 	return &UnsupportedMarkerError{
@@ -152,6 +154,19 @@ func (dec *Decoder) decodeNull(rv reflect.Value) error {
 	if err != nil {
 		return err
 	}
+
+	// TODO: fix, set nil to rv
+
+	return nil
+}
+
+func (dec *Decoder) decodeECMAArray(rv reflect.Value) error {
+	rv, err := indirect(rv)
+	if err != nil {
+		return err
+	}
+
+	//panic("not implemented")
 
 	return nil
 }
