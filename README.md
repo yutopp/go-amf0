@@ -1,14 +1,14 @@
 # go-amf0
 
-AMF0 decoder/encoder library written in Go.
+AMF0 encoder/decoder library written in Go.
 
 - [ ] Decoder
-  - [ ] Number
-  - [ ] Boolean
-  - [ ] String
-  - [ ] Object
+  - [x] Number
+  - [x] Boolean
+  - [x] String
+  - [x] Object
   - [ ] Movieclip
-  - [ ] null
+  - [x] null
   - [ ] undefined
   - [ ] Reference
   - [ ] ECMA Array
@@ -21,15 +21,15 @@ AMF0 decoder/encoder library written in Go.
   - [ ] XMLDocument
   - [ ] Typed Object
 - [ ] Encoder
-  - [ ] Number
+  - [x] Number
   - [ ] Boolean
-  - [ ] String
-  - [ ] Object
+  - [x] String
+  - [x] Object
   - [ ] Movieclip
-  - [ ] null
+  - [x] null
   - [ ] undefined
   - [ ] Reference
-  - [ ] ECMA Array
+  - [x] ECMA Array
   - [ ] Object End
   - [ ] Strict Array
   - [ ] Date
@@ -51,6 +51,6 @@ go get github.com/yutopp/go-amf0
 
 [Boost Software License - Version 1.0](./LICENSE_1_0.txt)
 
-# References
+## References
 
 - [spec](https://wwwimages2.adobe.com/content/dam/acom/en/devnet/pdf/amf0-file-format-specification.pdf)
