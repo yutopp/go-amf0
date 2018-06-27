@@ -110,7 +110,23 @@ func (dec *Decoder) decodeNumber(rv reflect.Value) error {
 		return err
 	}
 
-	rv.Set(reflect.ValueOf(num).Convert(rv.Type()))
+	switch rv.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		fallthrough
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		fallthrough
+	case reflect.Float32, reflect.Float64:
+		fallthrough
+	case reflect.Interface:
+		rv.Set(reflect.ValueOf(num).Convert(rv.Type()))
+
+	default:
+		return &NotAssignableError{
+			Message: "Not numeric type",
+			Kind:    rv.Kind(),
+			Type:    rv.Type(),
+		}
+	}
 
 	return nil
 }
