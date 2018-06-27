@@ -12,10 +12,12 @@ import (
 	"io"
 	"math"
 	"reflect"
+	"sort"
 )
 
 type Encoder struct {
-	w io.Writer
+	w        io.Writer
+	sortKeys bool
 }
 
 func NewEncoder(w io.Writer) *Encoder {
@@ -40,7 +42,7 @@ func (enc *Encoder) encode(rv reflect.Value) error {
 	case reflect.String:
 		return enc.encodeString(rv)
 	case reflect.Map:
-		return enc.encodeMapAsObject(rv)
+		return enc.encodeMap(rv)
 	case reflect.Array, reflect.Slice:
 		return enc.encodeArray(rv)
 	case reflect.Interface:
@@ -92,12 +94,55 @@ func (enc *Encoder) encodeString(rv reflect.Value) error {
 	return enc.writeUTF8(s)
 }
 
+func (enc *Encoder) encodeMap(rv reflect.Value) error {
+	if rv.Type() == reflect.TypeOf(ECMAArray{}) {
+		return enc.encodeMapAsECMAArray(rv)
+	}
+
+	return enc.encodeMapAsObject(rv)
+}
+
+func (enc *Encoder) encodeMapAsECMAArray(rv reflect.Value) error {
+	if err := enc.writeU8(uint8(MarkerEcmaArray)); err != nil {
+		return err
+	}
+
+	l := rv.Len()
+	if err := enc.writeU32(uint32(l)); err != nil {
+		return err
+	}
+
+	for _, key := range rv.MapKeys() {
+		if err := enc.writeUTF8(key.String()); err != nil {
+			return err
+		}
+
+		value := rv.MapIndex(key)
+		if err := enc.encode(value); err != nil {
+			return err
+		}
+	}
+
+	if err := enc.writeUTF8(""); err != nil { // utf-8-empty
+		return err
+	}
+
+	return enc.encodeObjectEnd()
+}
+
 func (enc *Encoder) encodeMapAsObject(rv reflect.Value) error {
 	if err := enc.writeU8(uint8(MarkerObject)); err != nil {
 		return err
 	}
 
-	for _, key := range rv.MapKeys() {
+	keys := rv.MapKeys()
+	if enc.sortKeys {
+		sort.Slice(keys, func(i, j int) bool {
+			return keys[i].String() < keys[j].String()
+		})
+	}
+
+	for _, key := range keys {
 		if key.Kind() != reflect.String {
 			return &UnexpectedKeyTypeError{
 				ActualKind: key.Kind(),
@@ -127,51 +172,7 @@ func (enc *Encoder) encodeObjectEnd() error {
 }
 
 func (enc *Encoder) encodeArray(rv reflect.Value) error {
-	if rv.Len() >= 1 {
-		re := rv.Index(0)
-		if re.Kind() == reflect.Ptr {
-			re = reflect.Indirect(re)
-		}
-		if isECMAArrayElem(re) {
-			return enc.encodeArrayAsECMAArray(rv)
-		}
-	}
-
-	panic("not implemented") // TODO
-	//return enc.encodeArrayAsStrictArray(rv)
-}
-
-func (enc *Encoder) encodeArrayAsECMAArray(rv reflect.Value) error {
-	if err := enc.writeU8(uint8(MarkerEcmaArray)); err != nil {
-		return err
-	}
-
-	l := rv.Len()
-	if err := enc.writeU32(uint32(l)); err != nil {
-		return err
-	}
-
-	for i := 0; i < rv.Len(); i++ {
-		re := rv.Index(i)
-		if re.Kind() == reflect.Ptr {
-			re = reflect.Indirect(re)
-		}
-		key := re.Field(0).String()
-		value := re.Field(1)
-
-		if err := enc.writeUTF8(key); err != nil {
-			return err
-		}
-		if err := enc.encode(value); err != nil {
-			return err
-		}
-	}
-
-	if err := enc.writeUTF8(""); err != nil { // utf-8-empty
-		return err
-	}
-
-	return enc.encodeObjectEnd()
+	panic("Not implemented") // TODO
 }
 
 func (enc *Encoder) encodeNull() error {

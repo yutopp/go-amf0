@@ -22,6 +22,7 @@ func TestEncodeCommon(t *testing.T) {
 
 			buf := bytes.NewBuffer([]byte{})
 			enc := NewEncoder(buf)
+			enc.sortKeys = true // for debuging
 
 			err := enc.Encode(tc.Value)
 			assert.Nil(t, err)

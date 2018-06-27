@@ -76,12 +76,9 @@ var testCases = []testCase{
 	},
 	testCase{
 		Name: "ECMA Array",
-		Value: []struct {
-			Key   string `amf0:"ecma"`
-			Value interface{}
-		}{
-			{Key: "a", Value: "str"},
-			{Key: "b", Value: 10},
+		Value: ECMAArray{
+			"a": "str",
+			"b": float64(10), // all decoded numbers become float64 type
 		},
 		Binary: []byte{
 			// ECMA Array Marker

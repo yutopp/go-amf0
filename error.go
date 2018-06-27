@@ -44,11 +44,12 @@ func (e *UnsupportedMarkerError) Error() string {
 
 type DecodeError struct {
 	Message string
+	Dump    string
 }
 
 // Error ...
 func (e *DecodeError) Error() string {
-	return e.Message
+	return fmt.Sprintf("Message = %s, Dump = \n%s", e.Message, e.Dump)
 }
 
 // NotAssignableError ...
@@ -59,5 +60,5 @@ type NotAssignableError struct {
 
 // Error ...
 func (e *NotAssignableError) Error() string {
-	return fmt.Sprintf("Not assignable to receiver value: Message=%+v, Kind=%+v", e.Message, e.ReceiverKind)
+	return fmt.Sprintf("Not assignable to receiver value: Message=%+v, Kind=%+v", e.Message, e.ReceiverKind.String())
 }

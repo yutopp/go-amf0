@@ -9,6 +9,8 @@ package amf0
 
 import (
 	"encoding/binary"
+	"encoding/hex"
+	_ "github.com/pkg/errors"
 	"io"
 	"math"
 	"reflect"
@@ -49,10 +51,12 @@ func (dec *Decoder) decode(rv reflect.Value) error {
 		return dec.decodeNull(rv)
 	case MarkerEcmaArray:
 		return dec.decodeECMAArray(rv)
-	}
-
-	return &UnsupportedMarkerError{
-		Marker: marker,
+	case MarkerObjectEnd:
+		return dec.decodeObjectEnd(rv)
+	default:
+		return &UnsupportedMarkerError{
+			Marker: marker,
+		}
 	}
 }
 
@@ -149,13 +153,30 @@ func (dec *Decoder) decodeObject(rv reflect.Value) error {
 	return nil
 }
 
+func (dec *Decoder) decodeObjectProperty(rk *string, rv reflect.Value) error {
+	key, err := dec.readUTF8()
+	if err != nil {
+		return err
+	}
+	*rk = key
+
+	return dec.decode(rv)
+}
+
 func (dec *Decoder) decodeNull(rv reflect.Value) error {
 	rv, err := indirect(rv)
 	if err != nil {
 		return err
 	}
 
-	// TODO: fix, set nil to rv
+	if rv.Kind() != reflect.Map && rv.Kind() != reflect.Slice && rv.Kind() != reflect.Interface {
+		return &NotAssignableError{
+			Message:      "Not reference type",
+			ReceiverKind: rv.Kind(),
+		}
+	}
+
+	rv.Set(reflect.Zero(rv.Type()))
 
 	return nil
 }
@@ -166,7 +187,50 @@ func (dec *Decoder) decodeECMAArray(rv reflect.Value) error {
 		return err
 	}
 
-	//panic("not implemented")
+	if rv.Kind() != reflect.Interface && rv.Kind() != reflect.Map {
+		return &NotAssignableError{
+			Message:      "Not map or interface type",
+			ReceiverKind: rv.Kind(),
+		}
+	}
+
+	if rv.IsNil() {
+		switch rv.Kind() {
+		case reflect.Interface:
+			rv.Set(reflect.MakeMap(reflect.TypeOf(ECMAArray{})))
+		case reflect.Map:
+			rv.Set(reflect.MakeMap(rv.Type()))
+		}
+		rv = rv.Elem()
+	}
+
+	numElems, err := dec.readU32()
+	if err != nil {
+		return err
+	}
+
+	for i := uint32(0); i < numElems; i++ {
+		var key string
+		var value interface{}
+
+		rvM := reflect.ValueOf(&value)
+		if err := dec.decodeObjectProperty(&key, rvM); err != nil {
+			return err
+		}
+
+		rv.SetMapIndex(reflect.ValueOf(key), rvM.Elem())
+	}
+
+	return nil
+}
+
+func (dec *Decoder) decodeObjectEnd(rv reflect.Value) error {
+	rv, err := indirect(rv)
+	if err != nil {
+		return err
+	}
+
+	rv.Set(reflect.ValueOf(ObjectEnd))
 
 	return nil
 }
@@ -191,6 +255,16 @@ func (dec *Decoder) readU16() (uint16, error) {
 	return binary.BigEndian.Uint16(u16), nil
 }
 
+func (dec *Decoder) readU32() (uint32, error) {
+	bin := make([]byte, 4)
+	_, err := io.ReadAtLeast(dec.r, bin, len(bin))
+	if err != nil {
+		return 0, err
+	}
+
+	return binary.BigEndian.Uint32(bin), nil
+}
+
 func (dec *Decoder) readDouble() (float64, error) {
 	d := make([]byte, 8) // TODO: optimize
 	_, err := io.ReadAtLeast(dec.r, d, 8)
@@ -211,7 +285,8 @@ func (dec *Decoder) readUTF8Chars(len int) (string, error) {
 
 	if !utf8.Valid(str) {
 		return "", &DecodeError{
-			Message: "invalid utf8 sequence",
+			Message: "Invalid utf8 sequence",
+			Dump:    hex.Dump(str),
 		}
 	}
 

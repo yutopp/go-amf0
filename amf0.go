@@ -28,3 +28,7 @@ const (
 	MarkerXMLDocument        = 0x0F
 	MarkerTypedObject        = 0x10
 )
+
+type ECMAArray map[string]interface{}
+
+var ObjectEnd = &struct{}{}

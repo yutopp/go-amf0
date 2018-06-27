@@ -58,13 +58,32 @@ func TestDecodeNumber(t *testing.T) {
 func TestDecodeNil(t *testing.T) {
 	bin := []byte{0x05} // Null
 
-	t.Run("assignable", func(t *testing.T) {
+	t.Run("assignable to interface{}", func(t *testing.T) {
+		buf := bytes.NewBuffer(bin)
+		dec := NewDecoder(buf)
+
+		var v interface{}
+		err := dec.Decode(&v)
+		assert.Nil(t, err)
+		assert.Equal(t, nil, v)
+	})
+
+	t.Run("assignable to map", func(t *testing.T) {
 		buf := bytes.NewBuffer(bin)
 		dec := NewDecoder(buf)
 
 		var v map[int]int
 		err := dec.Decode(&v)
 		assert.Nil(t, err)
-		assert.Equal(t, nil, v)
+		assert.Equal(t, map[int]int(nil), v)
+	})
+
+	t.Run("assignable to int (set to not reference value will fail)", func(t *testing.T) {
+		buf := bytes.NewBuffer(bin)
+		dec := NewDecoder(buf)
+
+		var v int
+		err := dec.Decode(&v)
+		assert.NotNil(t, err)
 	})
 }
