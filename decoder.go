@@ -52,7 +52,7 @@ func (dec *Decoder) decode(rv reflect.Value) error {
 	case MarkerEcmaArray:
 		return dec.decodeECMAArray(rv)
 	case MarkerObjectEnd:
-		return dec.decodeObjectEnd(rv)
+		return ErrObjectEndMarker
 	default:
 		return &UnsupportedMarkerError{
 			Marker: marker,
@@ -220,17 +220,6 @@ func (dec *Decoder) decodeECMAArray(rv reflect.Value) error {
 
 		rv.SetMapIndex(reflect.ValueOf(key), rvM.Elem())
 	}
-
-	return nil
-}
-
-func (dec *Decoder) decodeObjectEnd(rv reflect.Value) error {
-	rv, err := indirect(rv)
-	if err != nil {
-		return err
-	}
-
-	rv.Set(reflect.ValueOf(ObjectEnd))
 
 	return nil
 }

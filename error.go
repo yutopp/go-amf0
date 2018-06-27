@@ -62,3 +62,5 @@ type NotAssignableError struct {
 func (e *NotAssignableError) Error() string {
 	return fmt.Sprintf("Not assignable to receiver value: Message=%+v, Kind=%+v", e.Message, e.ReceiverKind.String())
 }
+
+var ErrObjectEndMarker = fmt.Errorf("ObjectEndMarker")

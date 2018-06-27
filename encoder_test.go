@@ -30,3 +30,11 @@ func TestEncodeCommon(t *testing.T) {
 		})
 	}
 }
+
+func TestEncodeObjectEnd(t *testing.T) {
+	buf := bytes.NewBuffer([]byte{})
+	enc := NewEncoder(buf)
+
+	err := enc.Encode(ObjectEnd)
+	assert.Nil(t, err)
+}

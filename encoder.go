@@ -39,23 +39,35 @@ func (enc *Encoder) encode(rv reflect.Value) error {
 		fallthrough
 	case reflect.Float32, reflect.Float64:
 		return enc.encodeNumber(rv)
+
 	case reflect.String:
 		return enc.encodeString(rv)
+
 	case reflect.Map:
 		return enc.encodeMap(rv)
+
 	case reflect.Array, reflect.Slice:
 		return enc.encodeArray(rv)
+
 	case reflect.Interface:
 		if rv.IsNil() {
 			return enc.encodeNull()
 		}
 		return enc.Encode(rv.Interface())
+
 	case reflect.Invalid:
 		return enc.encodeNull()
-	}
 
-	return &UnsupportedKindError{
-		Kind: rv.Kind(),
+	case reflect.Struct, reflect.Ptr:
+		if rv.Type() == reflect.TypeOf(ObjectEnd) {
+			return enc.encodeObjectEnd()
+		}
+
+		fallthrough
+	default:
+		return &UnsupportedKindError{
+			Kind: rv.Kind(),
+		}
 	}
 }
 
@@ -112,7 +124,14 @@ func (enc *Encoder) encodeMapAsECMAArray(rv reflect.Value) error {
 		return err
 	}
 
-	for _, key := range rv.MapKeys() {
+	keys := rv.MapKeys()
+	if enc.sortKeys {
+		sort.Slice(keys, func(i, j int) bool {
+			return keys[i].String() < keys[j].String()
+		})
+	}
+
+	for _, key := range keys {
 		if err := enc.writeUTF8(key.String()); err != nil {
 			return err
 		}
@@ -121,10 +140,6 @@ func (enc *Encoder) encodeMapAsECMAArray(rv reflect.Value) error {
 		if err := enc.encode(value); err != nil {
 			return err
 		}
-	}
-
-	if err := enc.writeUTF8(""); err != nil { // utf-8-empty
-		return err
 	}
 
 	return enc.encodeObjectEnd()
@@ -160,14 +175,14 @@ func (enc *Encoder) encodeMapAsObject(rv reflect.Value) error {
 		}
 	}
 
-	if err := enc.writeUTF8(""); err != nil { // utf-8-empty
-		return err
-	}
-
 	return enc.encodeObjectEnd()
 }
 
 func (enc *Encoder) encodeObjectEnd() error {
+	if err := enc.writeUTF8(""); err != nil { // utf-8-empty
+		return err
+	}
+
 	return enc.writeU8(uint8(MarkerObjectEnd))
 }
 
@@ -216,22 +231,4 @@ func (enc *Encoder) writeUTF8(str string) error {
 	}
 	_, err := enc.w.Write([]byte(str))
 	return err
-}
-
-func isECMAArrayElem(rv reflect.Value) bool {
-	if rv.Kind() != reflect.Struct {
-		return false
-	}
-
-	ty := rv.Type()
-	if ty.NumField() != 2 {
-		return false
-	}
-
-	keyField := ty.Field(0)
-	if keyField.Type.Kind() != reflect.String {
-		return false
-	}
-
-	return keyField.Tag == `amf0:"ecma"`
 }
