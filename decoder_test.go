@@ -87,3 +87,67 @@ func TestDecodeNil(t *testing.T) {
 		assert.NotNil(t, err)
 	})
 }
+
+func TestDecodeStrictArraySame(t *testing.T) {
+	bin := []byte{
+		// Strict Array Marker
+		0x0a,
+		// Array length (2: u32) BigEndian
+		0x00, 0x00, 0x00, 0x02,
+		// Elem 0 (string)
+		0x2, 0x00, 0x03, 0x73, 0x74, 0x72,
+		// Elem 1 (string)
+		0x2, 0x00, 0x03, 0x73, 0x74, 0x72,
+	}
+
+	t.Run("assignable to typed slice", func(t *testing.T) {
+		buf := bytes.NewBuffer(bin)
+		dec := NewDecoder(buf)
+
+		var v []string
+		err := dec.Decode(&v)
+		assert.Nil(t, err)
+		assert.Equal(t, []string{"str", "str"}, v)
+	})
+
+	t.Run("assignable to typed array (same length)", func(t *testing.T) {
+		buf := bytes.NewBuffer(bin)
+		dec := NewDecoder(buf)
+
+		var v [2]string
+		err := dec.Decode(&v)
+		assert.Nil(t, err)
+		assert.Equal(t, [2]string{"str", "str"}, v)
+	})
+
+	t.Run("assignable to typed array (different length)", func(t *testing.T) {
+		buf := bytes.NewBuffer(bin)
+		dec := NewDecoder(buf)
+
+		var v [10]string
+		err := dec.Decode(&v)
+		assert.NotNil(t, err) // should support an array which has length that more than of equals to length of an encoded strict array?
+	})
+}
+
+func TestDecodeStrictArrayHetero(t *testing.T) {
+	bin := []byte{
+		// Strict Array Marker
+		0x0a,
+		// Array length (2: u32) BigEndian
+		0x00, 0x00, 0x00, 0x02,
+		// Elem 0 (string)
+		0x2, 0x00, 0x03, 0x73, 0x74, 0x72,
+		// Elem 1 (number)
+		0x00, 0x40, 0x24, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	}
+
+	t.Run("assignable to typed slice", func(t *testing.T) {
+		buf := bytes.NewBuffer(bin)
+		dec := NewDecoder(buf)
+
+		var v []string
+		err := dec.Decode(&v)
+		assert.NotNil(t, err)
+	})
+}

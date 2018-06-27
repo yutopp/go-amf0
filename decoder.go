@@ -10,6 +10,7 @@ package amf0
 import (
 	"encoding/binary"
 	"encoding/hex"
+	"fmt"
 	_ "github.com/pkg/errors"
 	"io"
 	"math"
@@ -279,7 +280,53 @@ func (dec *Decoder) decodeECMAArray(rv reflect.Value) error {
 // skip ObjectEnd
 
 func (dec *Decoder) decodeStrictArray(rv reflect.Value) error {
-	panic("not implemented")
+	rv, err := indirect(rv)
+	if err != nil {
+		return err
+	}
+
+	if rv.Kind() != reflect.Interface && rv.Kind() != reflect.Slice && rv.Kind() != reflect.Array {
+		return &NotAssignableError{
+			Message: "Not array or slice or interface type",
+			Kind:    rv.Kind(),
+			Type:    rv.Type(),
+		}
+	}
+
+	length, err := dec.readU32()
+	if err != nil {
+		return err
+	}
+	if length > math.MaxInt32 {
+		// specification said "maximum 4294967295", however we cannot support that... TODO: support if possible
+		return fmt.Errorf("Unsupported array length: Expected <= %d, Actual = %d", math.MaxInt32, length)
+	}
+
+	if rv.Kind() == reflect.Interface || rv.Kind() == reflect.Slice {
+		if rv.IsNil() {
+			switch rv.Kind() {
+			case reflect.Interface:
+				rv.Set(reflect.ValueOf(make([]interface{}, int(length), int(length))))
+				rv = rv.Elem()
+			case reflect.Slice:
+				rv.Set(reflect.MakeSlice(rv.Type(), int(length), int(length)))
+			}
+		}
+	}
+
+	if rv.Kind() == reflect.Slice || rv.Kind() == reflect.Array {
+		if rv.Len() != int(length) {
+			return fmt.Errorf("Length of array/slice is different: Expected = %d, Actual = %d", int(length), rv.Len())
+		}
+	}
+
+	for i := 0; i < int(length); i++ {
+		if err := dec.decode(rv.Index(i).Addr()); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (dec *Decoder) decodeDate(rv reflect.Value) error {

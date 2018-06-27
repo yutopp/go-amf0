@@ -115,6 +115,23 @@ var testCases = []testCase{
 		},
 	},
 	testCase{
+		Name: "Strict Array",
+		Value: []interface{}{
+			"str",
+			float64(10),
+		},
+		Binary: []byte{
+			// Strict Array Marker
+			0x0a,
+			// Array length (2: u32) BigEndian
+			0x00, 0x00, 0x00, 0x02,
+			// Elem 0 (string)
+			0x2, 0x00, 0x03, 0x73, 0x74, 0x72,
+			// Elem 1 (number)
+			0x00, 0x40, 0x24, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		},
+	},
+	testCase{
 		Name:  "Date",
 		Value: time.Unix(0x1234, 0).In(time.UTC),
 		Binary: []byte{

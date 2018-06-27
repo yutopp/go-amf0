@@ -49,7 +49,7 @@ func (enc *Encoder) encode(rv reflect.Value) error {
 		return enc.encodeMap(rv)
 
 	case reflect.Array, reflect.Slice:
-		return enc.encodeArray(rv)
+		return enc.encodeStrictArray(rv)
 
 	case reflect.Interface:
 		if rv.IsNil() {
@@ -211,8 +211,22 @@ func (enc *Encoder) encodeObjectEnd() error {
 	return enc.writeU8(uint8(MarkerObjectEnd))
 }
 
-func (enc *Encoder) encodeArray(rv reflect.Value) error {
-	panic("Not implemented") // TODO
+func (enc *Encoder) encodeStrictArray(rv reflect.Value) error {
+	if err := enc.writeU8(uint8(MarkerStrictArray)); err != nil {
+		return err
+	}
+
+	if err := enc.writeU32(uint32(rv.Len())); err != nil {
+		return err
+	}
+
+	for i := 0; i < rv.Len(); i++ {
+		if err := enc.encode(rv.Index(i)); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (enc *Encoder) encodeDate(rv reflect.Value) error {
