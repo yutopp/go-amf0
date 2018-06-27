@@ -76,6 +76,14 @@ func (enc *Encoder) encode(rv reflect.Value) error {
 	}
 }
 
+func (enc *Encoder) encodeMap(rv reflect.Value) error {
+	if rv.Type() == reflect.TypeOf(ECMAArray{}) {
+		return enc.encodeMapAsECMAArray(rv)
+	}
+
+	return enc.encodeMapAsObject(rv)
+}
+
 func (enc *Encoder) encodeNumber(rv reflect.Value) error {
 	if err := enc.writeU8(uint8(MarkerNumber)); err != nil {
 		return err
@@ -98,6 +106,10 @@ func (enc *Encoder) encodeNumber(rv reflect.Value) error {
 	return enc.writeDouble(d)
 }
 
+func (enc *Encoder) encodeBoolean(rv reflect.Value) error {
+	panic("Not implemented: Boolean")
+}
+
 func (enc *Encoder) encodeString(rv reflect.Value) error {
 	s := rv.String()
 	if len(s) > 65535 {
@@ -109,45 +121,6 @@ func (enc *Encoder) encodeString(rv reflect.Value) error {
 		return err
 	}
 	return enc.writeUTF8(s)
-}
-
-func (enc *Encoder) encodeMap(rv reflect.Value) error {
-	if rv.Type() == reflect.TypeOf(ECMAArray{}) {
-		return enc.encodeMapAsECMAArray(rv)
-	}
-
-	return enc.encodeMapAsObject(rv)
-}
-
-func (enc *Encoder) encodeMapAsECMAArray(rv reflect.Value) error {
-	if err := enc.writeU8(uint8(MarkerEcmaArray)); err != nil {
-		return err
-	}
-
-	l := rv.Len()
-	if err := enc.writeU32(uint32(l)); err != nil {
-		return err
-	}
-
-	keys := rv.MapKeys()
-	if enc.sortKeys {
-		sort.Slice(keys, func(i, j int) bool {
-			return keys[i].String() < keys[j].String()
-		})
-	}
-
-	for _, key := range keys {
-		if err := enc.writeUTF8(key.String()); err != nil {
-			return err
-		}
-
-		value := rv.MapIndex(key)
-		if err := enc.encode(value); err != nil {
-			return err
-		}
-	}
-
-	return enc.encodeObjectEnd()
 }
 
 func (enc *Encoder) encodeMapAsObject(rv reflect.Value) error {
@@ -183,6 +156,53 @@ func (enc *Encoder) encodeMapAsObject(rv reflect.Value) error {
 	return enc.encodeObjectEnd()
 }
 
+func (enc *Encoder) encodeMovieClip(rv reflect.Value) error {
+	panic("Not implemented: MovieClip")
+}
+
+func (enc *Encoder) encodeNull() error {
+	return enc.writeU8(MarkerNull)
+}
+
+func (enc *Encoder) encodeUndefined(rv reflect.Value) error {
+	panic("Not implemented: Undefined")
+}
+
+func (enc *Encoder) encodeReference(rv reflect.Value) error {
+	panic("Not implemented: Reference")
+}
+
+func (enc *Encoder) encodeMapAsECMAArray(rv reflect.Value) error {
+	if err := enc.writeU8(uint8(MarkerEcmaArray)); err != nil {
+		return err
+	}
+
+	l := rv.Len()
+	if err := enc.writeU32(uint32(l)); err != nil {
+		return err
+	}
+
+	keys := rv.MapKeys()
+	if enc.sortKeys {
+		sort.Slice(keys, func(i, j int) bool {
+			return keys[i].String() < keys[j].String()
+		})
+	}
+
+	for _, key := range keys {
+		if err := enc.writeUTF8(key.String()); err != nil {
+			return err
+		}
+
+		value := rv.MapIndex(key)
+		if err := enc.encode(value); err != nil {
+			return err
+		}
+	}
+
+	return enc.encodeObjectEnd()
+}
+
 func (enc *Encoder) encodeObjectEnd() error {
 	if err := enc.writeUTF8(""); err != nil { // utf-8-empty
 		return err
@@ -193,10 +213,6 @@ func (enc *Encoder) encodeObjectEnd() error {
 
 func (enc *Encoder) encodeArray(rv reflect.Value) error {
 	panic("Not implemented") // TODO
-}
-
-func (enc *Encoder) encodeNull() error {
-	return enc.writeU8(MarkerNull)
 }
 
 func (enc *Encoder) encodeDate(rv reflect.Value) error {
@@ -219,6 +235,26 @@ func (enc *Encoder) encodeDate(rv reflect.Value) error {
 	}
 
 	return enc.writeS16(tz)
+}
+
+func (enc *Encoder) encodeLongString(rv reflect.Value) error {
+	panic("Not implemented: LongString")
+}
+
+func (enc *Encoder) encodeUnsupported(rv reflect.Value) error {
+	panic("Not implemented: Unsupported")
+}
+
+func (enc *Encoder) encodeRecordSet(rv reflect.Value) error {
+	panic("Not implemented: RecordSet")
+}
+
+func (enc *Encoder) encodeXMLDocument(rv reflect.Value) error {
+	panic("Not implemented: XMLDocument")
+}
+
+func (enc *Encoder) encodeTypedObject(rv reflect.Value) error {
+	panic("Not implemented: TypedObject")
 }
 
 func (enc *Encoder) writeU8(num uint8) error {

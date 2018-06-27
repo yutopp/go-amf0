@@ -52,8 +52,17 @@ func (dec *Decoder) decode(rv reflect.Value) error {
 	case MarkerObject:
 		return dec.decodeObject(rv)
 
+	case MarkerMovieclip:
+		return dec.decodeMovieClip(rv)
+
 	case MarkerNull:
 		return dec.decodeNull(rv)
+
+	case MarkerUndefined:
+		return dec.decodeUndefined(rv)
+
+	case MarkerReference:
+		return dec.decodeReference(rv)
 
 	case MarkerEcmaArray:
 		return dec.decodeECMAArray(rv)
@@ -61,8 +70,26 @@ func (dec *Decoder) decode(rv reflect.Value) error {
 	case MarkerObjectEnd:
 		return ErrObjectEndMarker
 
+	case MarkerStrictArray:
+		return dec.decodeStrictArray(rv)
+
 	case MarkerDate:
 		return dec.decodeDate(rv)
+
+	case MarkerLongString:
+		return dec.decodeLongString(rv)
+
+	case MarkerUnsupported:
+		panic("Not implemented: Unsupported") // TODO: returns error
+
+	case MarkerRecordSet:
+		return dec.decodeRecordSet(rv)
+
+	case MarkerXMLDocument:
+		return dec.decodeXMLDocument(rv)
+
+	case MarkerTypedObject:
+		return dec.decodeTypedObject(rv)
 
 	default:
 		return &UnsupportedMarkerError{
@@ -174,6 +201,10 @@ func (dec *Decoder) decodeObjectProperty(rk *string, rv reflect.Value) error {
 	return dec.decode(rv)
 }
 
+func (dec *Decoder) decodeMovieClip(rv reflect.Value) error {
+	panic("Not implemented: MovieClip")
+}
+
 func (dec *Decoder) decodeNull(rv reflect.Value) error {
 	rv, err := indirect(rv)
 	if err != nil {
@@ -191,6 +222,14 @@ func (dec *Decoder) decodeNull(rv reflect.Value) error {
 	rv.Set(reflect.Zero(rv.Type()))
 
 	return nil
+}
+
+func (dec *Decoder) decodeUndefined(rv reflect.Value) error {
+	panic("Not implemented: Undefined")
+}
+
+func (dec *Decoder) decodeReference(rv reflect.Value) error {
+	panic("Not implemented: Reference")
 }
 
 func (dec *Decoder) decodeECMAArray(rv reflect.Value) error {
@@ -237,6 +276,12 @@ func (dec *Decoder) decodeECMAArray(rv reflect.Value) error {
 	return nil
 }
 
+// skip ObjectEnd
+
+func (dec *Decoder) decodeStrictArray(rv reflect.Value) error {
+	panic("not implemented")
+}
+
 func (dec *Decoder) decodeDate(rv reflect.Value) error {
 	rv, err := indirect(rv)
 	if err != nil {
@@ -279,6 +324,24 @@ func (dec *Decoder) decodeDate(rv reflect.Value) error {
 	rv.Set(reflect.ValueOf(t))
 
 	return nil
+}
+
+func (dec *Decoder) decodeLongString(rv reflect.Value) error {
+	panic("Not implemented: LongString")
+}
+
+// skip Unsupported
+
+func (dec *Decoder) decodeRecordSet(rv reflect.Value) error {
+	panic("Not implemented: RecordSet")
+}
+
+func (dec *Decoder) decodeXMLDocument(rv reflect.Value) error {
+	panic("Not implemented: XMLDocument")
+}
+
+func (dec *Decoder) decodeTypedObject(rv reflect.Value) error {
+	panic("Not implemented: TypedObject")
 }
 
 func (dec *Decoder) readU8() (uint8, error) {
