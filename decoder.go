@@ -14,6 +14,7 @@ import (
 	"io"
 	"math"
 	"reflect"
+	"time"
 	"unicode/utf8"
 )
 
@@ -41,18 +42,28 @@ func (dec *Decoder) decode(rv reflect.Value) error {
 	switch Marker(marker) {
 	case MarkerNumber:
 		return dec.decodeNumber(rv)
+
 	case MarkerBoolean:
 		return dec.decodeBoolean(rv)
+
 	case MarkerString:
 		return dec.decodeString(rv)
+
 	case MarkerObject:
 		return dec.decodeObject(rv)
+
 	case MarkerNull:
 		return dec.decodeNull(rv)
+
 	case MarkerEcmaArray:
 		return dec.decodeECMAArray(rv)
+
 	case MarkerObjectEnd:
 		return ErrObjectEndMarker
+
+	case MarkerDate:
+		return dec.decodeDate(rv)
+
 	default:
 		return &UnsupportedMarkerError{
 			Marker: marker,
@@ -171,8 +182,9 @@ func (dec *Decoder) decodeNull(rv reflect.Value) error {
 
 	if rv.Kind() != reflect.Map && rv.Kind() != reflect.Slice && rv.Kind() != reflect.Interface {
 		return &NotAssignableError{
-			Message:      "Not reference type",
-			ReceiverKind: rv.Kind(),
+			Message: "Not reference type",
+			Kind:    rv.Kind(),
+			Type:    rv.Type(),
 		}
 	}
 
@@ -189,8 +201,9 @@ func (dec *Decoder) decodeECMAArray(rv reflect.Value) error {
 
 	if rv.Kind() != reflect.Interface && rv.Kind() != reflect.Map {
 		return &NotAssignableError{
-			Message:      "Not map or interface type",
-			ReceiverKind: rv.Kind(),
+			Message: "Not map or interface type",
+			Kind:    rv.Kind(),
+			Type:    rv.Type(),
 		}
 	}
 
@@ -224,6 +237,50 @@ func (dec *Decoder) decodeECMAArray(rv reflect.Value) error {
 	return nil
 }
 
+func (dec *Decoder) decodeDate(rv reflect.Value) error {
+	rv, err := indirect(rv)
+	if err != nil {
+		return err
+	}
+
+	if rv.Kind() != reflect.Interface && rv.Kind() != reflect.Struct {
+		return &NotAssignableError{
+			Message: "Not struct or interface type",
+			Kind:    rv.Kind(),
+			Type:    rv.Type(),
+		}
+	}
+
+	if rv.Kind() == reflect.Struct && rv.Type() != reflect.TypeOf(time.Time{}) {
+		return &NotAssignableError{
+			Message: "Not time.Time type",
+			Kind:    rv.Kind(),
+			Type:    rv.Type(),
+		}
+	}
+
+	unixMs, err := dec.readDouble()
+	if err != nil {
+		return err
+	}
+
+	tz, err := dec.readS16()
+	if err != nil {
+		return err
+	}
+
+	t := time.Unix(int64(unixMs)/1000, int64(unixMs)%1000*int64(time.Nanosecond)).In(time.UTC)
+
+	if tz != 0x00 {
+		// Timezone is specified
+		// TODO: support
+	}
+
+	rv.Set(reflect.ValueOf(t))
+
+	return nil
+}
+
 func (dec *Decoder) readU8() (uint8, error) {
 	u8 := make([]byte, 1) // TODO: optimize
 	_, err := io.ReadAtLeast(dec.r, u8, 1)
@@ -242,6 +299,15 @@ func (dec *Decoder) readU16() (uint16, error) {
 	}
 
 	return binary.BigEndian.Uint16(u16), nil
+}
+
+func (dec *Decoder) readS16() (int16, error) {
+	n, err := dec.readU16()
+	if err != nil {
+		return 0, err
+	}
+
+	return int16(n), nil
 }
 
 func (dec *Decoder) readU32() (uint32, error) {
@@ -302,14 +368,16 @@ func (dec *Decoder) readUTF8() (string, error) {
 func indirect(rv reflect.Value) (reflect.Value, error) {
 	if rv.Kind() != reflect.Ptr {
 		return reflect.Value{}, &NotAssignableError{
-			Message:      "Not pointer",
-			ReceiverKind: rv.Kind(),
+			Message: "Not pointer",
+			Kind:    rv.Kind(),
+			Type:    rv.Type(),
 		}
 	}
 	if rv.IsNil() {
 		return reflect.Value{}, &NotAssignableError{
-			Message:      "Nil",
-			ReceiverKind: rv.Kind(),
+			Message: "Nil",
+			Kind:    rv.Kind(),
+			Type:    rv.Type(),
 		}
 	}
 

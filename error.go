@@ -54,13 +54,18 @@ func (e *DecodeError) Error() string {
 
 // NotAssignableError ...
 type NotAssignableError struct {
-	Message      string
-	ReceiverKind reflect.Kind
+	Message string
+	Kind    reflect.Kind
+	Type    reflect.Type
 }
 
 // Error ...
 func (e *NotAssignableError) Error() string {
-	return fmt.Sprintf("Not assignable to receiver value: Message=%+v, Kind=%+v", e.Message, e.ReceiverKind.String())
+	return fmt.Sprintf("Not assignable to receiver value: Message=%+v, Kind=%s, Type=%s",
+		e.Message,
+		e.Kind.String(),
+		e.Type.String(),
+	)
 }
 
 var ErrObjectEndMarker = fmt.Errorf("ObjectEndMarker")

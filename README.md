@@ -20,7 +20,7 @@ AMF0 encoder/decoder library written in Go.
   - [x] ECMA Array
   - [x] Object End
   - [ ] Strict Array
-  - [ ] Date
+  - [x] Date
   - [ ] Long String
   - [ ] Unsupported
   - [ ] RecordSet
@@ -38,7 +38,7 @@ AMF0 encoder/decoder library written in Go.
   - [x] ECMA Array
   - [x] Object End
   - [ ] Strict Array
-  - [ ] Date
+  - [x] Date
   - [ ] Long String
   - [ ] Unsupported
   - [ ] RecordSet

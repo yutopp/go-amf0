@@ -9,10 +9,12 @@ package amf0
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 	"math"
 	"reflect"
 	"sort"
+	"time"
 )
 
 type Encoder struct {
@@ -59,8 +61,11 @@ func (enc *Encoder) encode(rv reflect.Value) error {
 		return enc.encodeNull()
 
 	case reflect.Struct, reflect.Ptr:
-		if rv.Type() == reflect.TypeOf(ObjectEnd) {
+		switch rv.Type() {
+		case reflect.TypeOf(ObjectEnd):
 			return enc.encodeObjectEnd()
+		case reflect.TypeOf(time.Time{}):
+			return enc.encodeDate(rv)
 		}
 
 		fallthrough
@@ -194,6 +199,28 @@ func (enc *Encoder) encodeNull() error {
 	return enc.writeU8(MarkerNull)
 }
 
+func (enc *Encoder) encodeDate(rv reflect.Value) error {
+	t := rv.Interface().(time.Time)
+	t = t.In(time.UTC) // Time zone is not supported yet, thus force convert to UTC. TODO: fix
+
+	if t.UnixNano()%int64(time.Millisecond) != 0 {
+		return fmt.Errorf("Date time of nano sec is not supported: Expected = 0, Actual = %d", t.UnixNano()%int64(time.Millisecond))
+	}
+
+	unixMs := float64(t.UnixNano() / int64(time.Millisecond))
+	tz := int16(0x00)
+
+	if err := enc.writeU8(uint8(MarkerDate)); err != nil {
+		return err
+	}
+
+	if err := enc.writeDouble(unixMs); err != nil {
+		return err
+	}
+
+	return enc.writeS16(tz)
+}
+
 func (enc *Encoder) writeU8(num uint8) error {
 	_, err := enc.w.Write([]byte{num}) // TODO: optimize
 	return err
@@ -205,6 +232,10 @@ func (enc *Encoder) writeU16(num uint16) error {
 
 	_, err := enc.w.Write(buf)
 	return err
+}
+
+func (enc *Encoder) writeS16(num int16) error {
+	return enc.writeU16(uint16(num))
 }
 
 func (enc *Encoder) writeU32(num uint32) error {

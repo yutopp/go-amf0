@@ -7,6 +7,10 @@
 
 package amf0
 
+import (
+	"time"
+)
+
 type testCase struct {
 	Name   string
 	Value  interface{}
@@ -108,6 +112,18 @@ var testCases = []testCase{
 			//   Key(empty)
 			//   - ObjectEndMarker
 			0x09,
+		},
+	},
+	testCase{
+		Name:  "Date",
+		Value: time.Unix(0x1234, 0).In(time.UTC),
+		Binary: []byte{
+			// Date Marker
+			0x0b,
+			// Unix time[ms]
+			0x41, 0x51, 0xc6, 0xc8, 0x00, 0x00, 0x00, 0x00,
+			// Time zone
+			0x00, 0x00,
 		},
 	},
 }
