@@ -34,6 +34,10 @@ func (dec *Decoder) Decode(v interface{}) error {
 	return dec.decode(rv)
 }
 
+func (dec *Decoder) Reset(r io.Reader) {
+	dec.r = r
+}
+
 func (dec *Decoder) decode(rv reflect.Value) error {
 	marker, err := dec.readU8()
 	if err != nil {

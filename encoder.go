@@ -33,6 +33,10 @@ func (enc *Encoder) Encode(v interface{}) error {
 	return enc.encode(rv)
 }
 
+func (enc *Encoder) Reset(w io.Writer) {
+	enc.w = w
+}
+
 func (enc *Encoder) encode(rv reflect.Value) error {
 	switch rv.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
