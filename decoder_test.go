@@ -20,13 +20,15 @@ func TestDecodeCommon(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
 
-			buf := bytes.NewBuffer(tc.Binary)
-			dec := NewDecoder(buf)
+			r := bytes.NewReader(tc.Binary)
+			dec := NewDecoder(r)
 
 			var v interface{}
 			err := dec.Decode(&v)
 			assert.Nil(t, err)
 			assert.Equal(t, tc.Value, v)
+
+			assert.Equal(t, 0, r.Len())
 		})
 	}
 }

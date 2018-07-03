@@ -212,14 +212,28 @@ func (dec *Decoder) decodeObject(rv reflect.Value) error {
 	return nil
 }
 
-func (dec *Decoder) decodeObjectProperty(rk *string, rv reflect.Value) error {
+func (dec *Decoder) decodeObjectProperty(rk *string, rv reflect.Value) (bool, error) {
 	key, err := dec.readUTF8()
 	if err != nil {
-		return err
+		return false, err
 	}
-	*rk = key
+	if key == "" {
+		// End object
+		marker, err := dec.readU8()
+		if err != nil {
+			return false, err
+		}
+		if marker != MarkerObjectEnd {
+			return false, &DecodeError{
+				Message: "Not ended with object-end",
+			}
+		}
 
-	return dec.decode(rv)
+		return true, nil
+	}
+
+	*rk = key
+	return false, dec.decode(rv)
 }
 
 func (dec *Decoder) decodeMovieClip(rv reflect.Value) error {
@@ -282,16 +296,33 @@ func (dec *Decoder) decodeECMAArray(rv reflect.Value) error {
 		return err
 	}
 
-	for i := uint32(0); i < numElems; i++ {
-		var key string
-		var value interface{}
+	var key string
+	var value interface{}
 
+	for i := uint32(0); i < numElems; i++ {
 		rvM := reflect.ValueOf(&value)
-		if err := dec.decodeObjectProperty(&key, rvM); err != nil {
+		isEnd, err := dec.decodeObjectProperty(&key, rvM)
+		if err != nil {
 			return err
+		}
+		if isEnd {
+			return &DecodeError{
+				Message: "Unexpected object end",
+			}
 		}
 
 		rv.SetMapIndex(reflect.ValueOf(key), rvM.Elem())
+	}
+
+	rvM := reflect.ValueOf(&value)
+	isEnd, err := dec.decodeObjectProperty(&key, rvM)
+	if err != nil {
+		return err
+	}
+	if !isEnd {
+		return &DecodeError{
+			Message: "Object end is not found",
+		}
 	}
 
 	return nil
