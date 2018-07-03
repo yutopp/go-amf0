@@ -46,6 +46,9 @@ func (enc *Encoder) encode(rv reflect.Value) error {
 	case reflect.Float32, reflect.Float64:
 		return enc.encodeNumber(rv)
 
+	case reflect.Bool:
+		return enc.encodeBoolean(rv)
+
 	case reflect.String:
 		return enc.encodeString(rv)
 
@@ -111,7 +114,16 @@ func (enc *Encoder) encodeNumber(rv reflect.Value) error {
 }
 
 func (enc *Encoder) encodeBoolean(rv reflect.Value) error {
-	panic("Not implemented: Boolean")
+	if err := enc.writeU8(uint8(MarkerBoolean)); err != nil {
+		return err
+	}
+
+	b := uint8(0)
+	if rv.Bool() {
+		b = 1
+	}
+
+	return enc.writeU8(b)
 }
 
 func (enc *Encoder) encodeString(rv reflect.Value) error {

@@ -151,7 +151,17 @@ func (dec *Decoder) decodeBoolean(rv reflect.Value) error {
 		return err
 	}
 
-	rv.Set(reflect.ValueOf(tf))
+	switch rv.Kind() {
+	case reflect.Bool, reflect.Interface:
+		rv.Set(reflect.ValueOf(tf))
+
+	default:
+		return &NotAssignableError{
+			Message: "Not boolean type",
+			Kind:    rv.Kind(),
+			Type:    rv.Type(),
+		}
+	}
 
 	return nil
 }

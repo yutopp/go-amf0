@@ -29,6 +29,26 @@ var testCases = []testCase{
 		},
 	},
 	testCase{
+		Name:  "Boolean (false)",
+		Value: false,
+		Binary: []byte{
+			// Boolean Marker
+			0x01,
+			// False
+			0x00,
+		},
+	},
+	testCase{
+		Name:  "Boolean (true)",
+		Value: true,
+		Binary: []byte{
+			// Boolean Marker
+			0x01,
+			// True
+			0x01,
+		},
+	},
+	testCase{
 		Name:  "String",
 		Value: "abc",
 		// 0x02: String Marker
