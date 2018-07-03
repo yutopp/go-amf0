@@ -306,32 +306,21 @@ func (dec *Decoder) decodeECMAArray(rv reflect.Value) error {
 	if err != nil {
 		return err
 	}
+	_ = numElems
 
 	var key string
 	value := reflect.New(rv.Type().Elem())
 
-	for i := uint32(0); i < numElems; i++ {
+	for {
 		isEnd, err := dec.decodeObjectProperty(&key, value)
 		if err != nil {
 			return err
 		}
 		if isEnd {
-			return &DecodeError{
-				Message: "Unexpected object end",
-			}
+			break
 		}
 
 		rv.SetMapIndex(reflect.ValueOf(key), value.Elem())
-	}
-
-	isEnd, err := dec.decodeObjectProperty(&key, value)
-	if err != nil {
-		return err
-	}
-	if !isEnd {
-		return &DecodeError{
-			Message: "Object end is not found",
-		}
 	}
 
 	return nil
