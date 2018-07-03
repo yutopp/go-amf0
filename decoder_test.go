@@ -37,8 +37,8 @@ func TestDecodeNumber(t *testing.T) {
 	bin := []byte{0x00, 0x40, 0x24, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00} // Number: 10
 
 	t.Run("int", func(t *testing.T) {
-		buf := bytes.NewBuffer(bin)
-		dec := NewDecoder(buf)
+		r := bytes.NewReader(bin)
+		dec := NewDecoder(r)
 
 		var v int
 		err := dec.Decode(&v)
@@ -47,8 +47,8 @@ func TestDecodeNumber(t *testing.T) {
 	})
 
 	t.Run("float64", func(t *testing.T) {
-		buf := bytes.NewBuffer(bin)
-		dec := NewDecoder(buf)
+		r := bytes.NewReader(bin)
+		dec := NewDecoder(r)
 
 		var v float64
 		err := dec.Decode(&v)
@@ -61,8 +61,8 @@ func TestDecodeNil(t *testing.T) {
 	bin := []byte{0x05} // Null
 
 	t.Run("assignable to interface{}", func(t *testing.T) {
-		buf := bytes.NewBuffer(bin)
-		dec := NewDecoder(buf)
+		r := bytes.NewReader(bin)
+		dec := NewDecoder(r)
 
 		var v interface{}
 		err := dec.Decode(&v)
@@ -71,8 +71,8 @@ func TestDecodeNil(t *testing.T) {
 	})
 
 	t.Run("assignable to map", func(t *testing.T) {
-		buf := bytes.NewBuffer(bin)
-		dec := NewDecoder(buf)
+		r := bytes.NewReader(bin)
+		dec := NewDecoder(r)
 
 		var v map[int]int
 		err := dec.Decode(&v)
@@ -81,8 +81,68 @@ func TestDecodeNil(t *testing.T) {
 	})
 
 	t.Run("assignable to int (set to not reference value will fail)", func(t *testing.T) {
-		buf := bytes.NewBuffer(bin)
-		dec := NewDecoder(buf)
+		r := bytes.NewReader(bin)
+		dec := NewDecoder(r)
+
+		var v int
+		err := dec.Decode(&v)
+		assert.NotNil(t, err)
+	})
+}
+
+func TestDecodeECMAArray(t *testing.T) {
+	bin := []byte{
+		0x08,
+		0x00, 0x00, 0x00, 0x01,
+		// Key a
+		0x00, 0x01, 0x61, // a
+		// Value nil
+		0x05,
+		// End
+		0x00, 0x00, 0x09,
+	}
+
+	t.Run("assignable to interface{}", func(t *testing.T) {
+		r := bytes.NewReader(bin)
+		dec := NewDecoder(r)
+
+		var v interface{}
+		err := dec.Decode(&v)
+		assert.Nil(t, err)
+		assert.Equal(t, ECMAArray{"a": nil}, v)
+	})
+
+	t.Run("assignable to map", func(t *testing.T) {
+		r := bytes.NewReader(bin)
+		dec := NewDecoder(r)
+
+		var v map[string]interface{}
+		err := dec.Decode(&v)
+		assert.Nil(t, err)
+		assert.Equal(t, map[string]interface{}{"a": nil}, v)
+	})
+
+	t.Run("assignable to map which has not string type key will fail", func(t *testing.T) {
+		r := bytes.NewReader(bin)
+		dec := NewDecoder(r)
+
+		var v map[int]interface{}
+		err := dec.Decode(&v)
+		assert.NotNil(t, err)
+	})
+
+	t.Run("assignable to map which has unmatched value type will fail", func(t *testing.T) {
+		r := bytes.NewReader(bin)
+		dec := NewDecoder(r)
+
+		var v map[string]int
+		err := dec.Decode(&v)
+		assert.NotNil(t, err)
+	})
+
+	t.Run("assignable to int (set to not reference value will fail)", func(t *testing.T) {
+		r := bytes.NewReader(bin)
+		dec := NewDecoder(r)
 
 		var v int
 		err := dec.Decode(&v)
@@ -103,8 +163,8 @@ func TestDecodeStrictArraySame(t *testing.T) {
 	}
 
 	t.Run("assignable to typed slice", func(t *testing.T) {
-		buf := bytes.NewBuffer(bin)
-		dec := NewDecoder(buf)
+		r := bytes.NewReader(bin)
+		dec := NewDecoder(r)
 
 		var v []string
 		err := dec.Decode(&v)
@@ -113,8 +173,8 @@ func TestDecodeStrictArraySame(t *testing.T) {
 	})
 
 	t.Run("assignable to typed array (same length)", func(t *testing.T) {
-		buf := bytes.NewBuffer(bin)
-		dec := NewDecoder(buf)
+		r := bytes.NewReader(bin)
+		dec := NewDecoder(r)
 
 		var v [2]string
 		err := dec.Decode(&v)
@@ -123,8 +183,8 @@ func TestDecodeStrictArraySame(t *testing.T) {
 	})
 
 	t.Run("assignable to typed array (different length)", func(t *testing.T) {
-		buf := bytes.NewBuffer(bin)
-		dec := NewDecoder(buf)
+		r := bytes.NewReader(bin)
+		dec := NewDecoder(r)
 
 		var v [10]string
 		err := dec.Decode(&v)
@@ -145,8 +205,8 @@ func TestDecodeStrictArrayHetero(t *testing.T) {
 	}
 
 	t.Run("assignable to typed slice", func(t *testing.T) {
-		buf := bytes.NewBuffer(bin)
-		dec := NewDecoder(buf)
+		r := bytes.NewReader(bin)
+		dec := NewDecoder(r)
 
 		var v []string
 		err := dec.Decode(&v)

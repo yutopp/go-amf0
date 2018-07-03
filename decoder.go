@@ -285,10 +285,21 @@ func (dec *Decoder) decodeECMAArray(rv reflect.Value) error {
 		switch rv.Kind() {
 		case reflect.Interface:
 			rv.Set(reflect.MakeMap(reflect.TypeOf(ECMAArray{})))
+			rv = rv.Elem()
 		case reflect.Map:
 			rv.Set(reflect.MakeMap(rv.Type()))
 		}
-		rv = rv.Elem()
+	}
+
+	if rv.Kind() == reflect.Map {
+		keyTy := rv.Type().Key()
+		if keyTy.Kind() != reflect.String {
+			return &NotAssignableError{
+				Message: "Key of map is not string type",
+				Kind:    keyTy.Kind(),
+				Type:    keyTy,
+			}
+		}
 	}
 
 	numElems, err := dec.readU32()
@@ -297,11 +308,10 @@ func (dec *Decoder) decodeECMAArray(rv reflect.Value) error {
 	}
 
 	var key string
-	var value interface{}
+	value := reflect.New(rv.Type().Elem())
 
 	for i := uint32(0); i < numElems; i++ {
-		rvM := reflect.ValueOf(&value)
-		isEnd, err := dec.decodeObjectProperty(&key, rvM)
+		isEnd, err := dec.decodeObjectProperty(&key, value)
 		if err != nil {
 			return err
 		}
@@ -311,11 +321,10 @@ func (dec *Decoder) decodeECMAArray(rv reflect.Value) error {
 			}
 		}
 
-		rv.SetMapIndex(reflect.ValueOf(key), rvM.Elem())
+		rv.SetMapIndex(reflect.ValueOf(key), value.Elem())
 	}
 
-	rvM := reflect.ValueOf(&value)
-	isEnd, err := dec.decodeObjectProperty(&key, rvM)
+	isEnd, err := dec.decodeObjectProperty(&key, value)
 	if err != nil {
 		return err
 	}
