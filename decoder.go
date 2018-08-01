@@ -106,7 +106,7 @@ func (dec *Decoder) decode(rv reflect.Value) error {
 func (dec *Decoder) decodeNumber(rv reflect.Value) error {
 	num, err := dec.readDouble()
 	if err != nil {
-		return err
+		return wrapEOF(err)
 	}
 
 	rv, err = indirect(rv)
@@ -138,7 +138,7 @@ func (dec *Decoder) decodeNumber(rv reflect.Value) error {
 func (dec *Decoder) decodeBoolean(rv reflect.Value) error {
 	num, err := dec.readU8()
 	if err != nil {
-		return err
+		return wrapEOF(err)
 	}
 
 	tf := false
@@ -169,7 +169,7 @@ func (dec *Decoder) decodeBoolean(rv reflect.Value) error {
 func (dec *Decoder) decodeString(rv reflect.Value) error {
 	str, err := dec.readUTF8()
 	if err != nil {
-		return err
+		return wrapEOF(err)
 	}
 
 	rv, err = indirect(rv)
@@ -188,13 +188,13 @@ func (dec *Decoder) decodeObject(rv reflect.Value) error {
 	for {
 		key, err := dec.readUTF8()
 		if err != nil {
-			return err
+			return wrapEOF(err)
 		}
 
 		if key == "" {
 			marker, err := dec.readU8()
 			if err != nil {
-				return err
+				return wrapEOF(err)
 			}
 			if marker != MarkerObjectEnd {
 				return &DecodeError{
@@ -225,13 +225,13 @@ func (dec *Decoder) decodeObject(rv reflect.Value) error {
 func (dec *Decoder) decodeObjectProperty(rk *string, rv reflect.Value) (bool, error) {
 	key, err := dec.readUTF8()
 	if err != nil {
-		return false, err
+		return false, wrapEOF(err)
 	}
 	if key == "" {
 		// End object
 		marker, err := dec.readU8()
 		if err != nil {
-			return false, err
+			return false, wrapEOF(err)
 		}
 		if marker != MarkerObjectEnd {
 			return false, &DecodeError{
@@ -314,7 +314,7 @@ func (dec *Decoder) decodeECMAArray(rv reflect.Value) error {
 
 	numElems, err := dec.readU32()
 	if err != nil {
-		return err
+		return wrapEOF(err)
 	}
 	_ = numElems
 
@@ -354,7 +354,7 @@ func (dec *Decoder) decodeStrictArray(rv reflect.Value) error {
 
 	length, err := dec.readU32()
 	if err != nil {
-		return err
+		return wrapEOF(err)
 	}
 	if length > math.MaxInt32 {
 		// specification said "maximum 4294967295", however we cannot support that... TODO: support if possible
@@ -412,12 +412,12 @@ func (dec *Decoder) decodeDate(rv reflect.Value) error {
 
 	unixMs, err := dec.readDouble()
 	if err != nil {
-		return err
+		return wrapEOF(err)
 	}
 
 	tz, err := dec.readS16()
 	if err != nil {
-		return err
+		return wrapEOF(err)
 	}
 
 	t := time.Unix(int64(unixMs)/1000, int64(unixMs)%1000*int64(time.Nanosecond)).In(time.UTC)
@@ -451,7 +451,7 @@ func (dec *Decoder) decodeTypedObject(rv reflect.Value) error {
 }
 
 func (dec *Decoder) readU8() (uint8, error) {
-	u8 := make([]byte, 1) // TODO: optimize
+	u8 := make([]byte, 1)
 	_, err := io.ReadAtLeast(dec.r, u8, 1)
 	if err != nil {
 		return 0, err
@@ -461,7 +461,7 @@ func (dec *Decoder) readU8() (uint8, error) {
 }
 
 func (dec *Decoder) readU16() (uint16, error) {
-	u16 := make([]byte, 2) // TODO: optimize
+	u16 := make([]byte, 2)
 	_, err := io.ReadAtLeast(dec.r, u16, 2)
 	if err != nil {
 		return 0, err
@@ -490,7 +490,7 @@ func (dec *Decoder) readU32() (uint32, error) {
 }
 
 func (dec *Decoder) readDouble() (float64, error) {
-	d := make([]byte, 8) // TODO: optimize
+	d := make([]byte, 8)
 	_, err := io.ReadAtLeast(dec.r, d, 8)
 	if err != nil {
 		return 0, err
@@ -532,6 +532,14 @@ func (dec *Decoder) readUTF8() (string, error) {
 	}
 
 	return str, nil
+}
+
+func wrapEOF(err error) error {
+	if err == io.EOF {
+		return io.ErrUnexpectedEOF
+	}
+
+	return err
 }
 
 func indirect(rv reflect.Value) (reflect.Value, error) {

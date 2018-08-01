@@ -57,6 +57,30 @@ func TestDecodeNumber(t *testing.T) {
 	})
 }
 
+func TestDecodePartialNumber(t *testing.T) {
+	{
+		bin := []byte{0x00}
+
+		r := bytes.NewReader(bin)
+		dec := NewDecoder(r)
+
+		var v int
+		err := dec.Decode(&v)
+		assert.EqualError(t, err, "unexpected EOF")
+	}
+
+	{
+		bin := []byte{0x00, 0x00}
+
+		r := bytes.NewReader(bin)
+		dec := NewDecoder(r)
+
+		var v int
+		err := dec.Decode(&v)
+		assert.EqualError(t, err, "unexpected EOF")
+	}
+}
+
 func TestDecodeNil(t *testing.T) {
 	bin := []byte{0x05} // Null
 
