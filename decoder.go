@@ -11,7 +11,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	_ "github.com/pkg/errors"
+	"github.com/pkg/errors"
 	"io"
 	"math"
 	"reflect"
@@ -249,7 +249,7 @@ func (dec *Decoder) decodeObjectProperty(rk *string, rv reflect.Value) (bool, er
 }
 
 func (dec *Decoder) decodeMovieClip(rv reflect.Value) error {
-	panic("Not implemented: MovieClip")
+	return errors.New("Not implemented: MovieClip")
 }
 
 func (dec *Decoder) decodeNull(rv reflect.Value) error {
@@ -272,11 +272,11 @@ func (dec *Decoder) decodeNull(rv reflect.Value) error {
 }
 
 func (dec *Decoder) decodeUndefined(rv reflect.Value) error {
-	panic("Not implemented: Undefined")
+	return errors.New("Not implemented: Undefined")
 }
 
 func (dec *Decoder) decodeReference(rv reflect.Value) error {
-	panic("Not implemented: Reference")
+	return errors.New("Not implemented: Reference")
 }
 
 func (dec *Decoder) decodeECMAArray(rv reflect.Value) error {
@@ -435,21 +435,21 @@ func (dec *Decoder) decodeDate(rv reflect.Value) error {
 }
 
 func (dec *Decoder) decodeLongString(rv reflect.Value) error {
-	panic("Not implemented: LongString")
+	return errors.New("Not implemented: LongString")
 }
 
 // skip Unsupported
 
 func (dec *Decoder) decodeRecordSet(rv reflect.Value) error {
-	panic("Not implemented: RecordSet")
+	return errors.New("Not implemented: RecordSet")
 }
 
 func (dec *Decoder) decodeXMLDocument(rv reflect.Value) error {
-	panic("Not implemented: XMLDocument")
+	return errors.New("Not implemented: XMLDocument")
 }
 
 func (dec *Decoder) decodeTypedObject(rv reflect.Value) error {
-	panic("Not implemented: TypedObject")
+	return errors.New("Not implemented: TypedObject")
 }
 
 func (dec *Decoder) readU8() (uint8, error) {
