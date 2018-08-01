@@ -85,7 +85,9 @@ func (dec *Decoder) decode(rv reflect.Value) error {
 		return dec.decodeLongString(rv)
 
 	case MarkerUnsupported:
-		panic("Not implemented: Unsupported") // TODO: returns error
+		return &UnsupportedMarkerError{
+			Marker: marker,
+		}
 
 	case MarkerRecordSet:
 		return dec.decodeRecordSet(rv)
@@ -97,7 +99,7 @@ func (dec *Decoder) decode(rv reflect.Value) error {
 		return dec.decodeTypedObject(rv)
 
 	default:
-		return &UnsupportedMarkerError{
+		return &UnexpectedMarkerError{
 			Marker: marker,
 		}
 	}

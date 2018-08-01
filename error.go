@@ -12,6 +12,16 @@ import (
 	"reflect"
 )
 
+// UnexpectedMarkerError Occurs when an unexpected marker is passed to the decoder
+type UnexpectedMarkerError struct {
+	Marker uint8
+}
+
+// Error Returns a string representation of the error
+func (e *UnexpectedMarkerError) Error() string {
+	return fmt.Sprintf("Unexpected marker: %+v", e.Marker)
+}
+
 // UnsupportedKindError returned by Encode when the value which has an unsupported kind is passed to the function.
 type UnsupportedKindError struct {
 	Kind reflect.Kind
