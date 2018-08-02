@@ -17,22 +17,26 @@ import (
 	"time"
 )
 
+// Encoder Encode objects in Golang into AMF0 and writes to the writer
 type Encoder struct {
 	w        io.Writer
 	sortKeys bool
 }
 
+// NewEncoder Create a new instance of Encoder
 func NewEncoder(w io.Writer) *Encoder {
 	return &Encoder{
 		w: w,
 	}
 }
 
+// Encode Encode objects
 func (enc *Encoder) Encode(v interface{}) error {
 	rv := reflect.ValueOf(v)
 	return enc.encode(rv)
 }
 
+// Reset Reset a state of the encoder
 func (enc *Encoder) Reset(w io.Writer) {
 	enc.w = w
 }
@@ -177,7 +181,7 @@ func (enc *Encoder) encodeMovieClip(rv reflect.Value) error {
 }
 
 func (enc *Encoder) encodeNull() error {
-	return enc.writeU8(MarkerNull)
+	return enc.writeU8(uint8(MarkerNull))
 }
 
 func (enc *Encoder) encodeUndefined(rv reflect.Value) error {

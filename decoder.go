@@ -18,21 +18,25 @@ import (
 	"unicode/utf8"
 )
 
+// Decoder Read from the reader and decode them into objects in Golang
 type Decoder struct {
 	r io.Reader
 }
 
+// NewDecoder Create a new instance of Decoder
 func NewDecoder(r io.Reader) *Decoder {
 	return &Decoder{
 		r: r,
 	}
 }
 
+// Decode Decode objects
 func (dec *Decoder) Decode(v interface{}) error {
 	rv := reflect.ValueOf(v)
 	return dec.decode(rv)
 }
 
+// Reset Reset a state of the decoder
 func (dec *Decoder) Reset(r io.Reader) {
 	dec.r = r
 }
@@ -195,7 +199,7 @@ func (dec *Decoder) decodeObject(rv reflect.Value) error {
 			if err != nil {
 				return wrapEOF(err)
 			}
-			if marker != MarkerObjectEnd {
+			if Marker(marker) != MarkerObjectEnd {
 				return &DecodeError{
 					Message: "Not ended with object-end",
 				}
@@ -232,7 +236,7 @@ func (dec *Decoder) decodeObjectProperty(rk *string, rv reflect.Value) (bool, er
 		if err != nil {
 			return false, wrapEOF(err)
 		}
-		if marker != MarkerObjectEnd {
+		if Marker(marker) != MarkerObjectEnd {
 			return false, &DecodeError{
 				Message: "Not ended with object-end",
 			}

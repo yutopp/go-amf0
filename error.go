@@ -41,44 +41,36 @@ func (e *UnexpectedValueError) Error() string {
 	return fmt.Sprintf("Unexpected value: Kind = %+v", e.Kind)
 }
 
-// UnexpectedKeyTypeError ...
+// UnexpectedKeyTypeError Occurs when an unexpected key type is passed to the encoder/decoder
 type UnexpectedKeyTypeError struct {
 	ActualKind reflect.Kind
 	ExpectKind reflect.Kind
 }
 
-// Error ...
+// Error Returns a string representation of the error
 func (e *UnexpectedKeyTypeError) Error() string {
 	return fmt.Sprintf("Unsupported key kind: %+v should be %+v", e.ActualKind.String(), e.ExpectKind.String())
 }
 
-type UnsupportedMarkerError struct {
-	Marker uint8
-}
-
-// Error ...
-func (e *UnsupportedMarkerError) Error() string {
-	return fmt.Sprintf("Unsupported marker: %+v", e.Marker)
-}
-
+// DecodeError Occurs when general errors are happen in the decoder
 type DecodeError struct {
 	Message string
 	Dump    string
 }
 
-// Error ...
+// Error Returns a string representation of the error
 func (e *DecodeError) Error() string {
 	return fmt.Sprintf("Message = %s, Dump = \n%s", e.Message, e.Dump)
 }
 
-// NotAssignableError ...
+// NotAssignableError Occurs when failed to assign a decoded value to the receiver value
 type NotAssignableError struct {
 	Message string
 	Kind    reflect.Kind
 	Type    reflect.Type
 }
 
-// Error ...
+// Error Returns a string representation of the error
 func (e *NotAssignableError) Error() string {
 	return fmt.Sprintf("Not assignable to receiver value: Message=%+v, Kind=%s, Type=%s",
 		e.Message,
@@ -87,4 +79,5 @@ func (e *NotAssignableError) Error() string {
 	)
 }
 
+// ErrObjectEndMarker ...
 var ErrObjectEndMarker = fmt.Errorf("ObjectEndMarker")
