@@ -85,9 +85,7 @@ func (dec *Decoder) decode(rv reflect.Value) error {
 		return dec.decodeLongString(rv)
 
 	case MarkerUnsupported:
-		return &UnsupportedMarkerError{
-			Marker: marker,
-		}
+		return &UnsupportedError{}
 
 	case MarkerRecordSet:
 		return dec.decodeRecordSet(rv)

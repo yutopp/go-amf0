@@ -19,17 +19,26 @@ type UnexpectedMarkerError struct {
 
 // Error Returns a string representation of the error
 func (e *UnexpectedMarkerError) Error() string {
-	return fmt.Sprintf("Unexpected marker: %+v", e.Marker)
+	return fmt.Sprintf("Unexpected marker: Marker = %+v", e.Marker)
 }
 
-// UnsupportedKindError returned by Encode when the value which has an unsupported kind is passed to the function.
-type UnsupportedKindError struct {
+// UnsupportedError Occurs when decode unsupported messages
+type UnsupportedError struct {
+}
+
+// Error Returns a string representation of the error
+func (e *UnsupportedError) Error() string {
+	return "Unsupported"
+}
+
+// UnexpectedValueError Occurs when an unexpected value is passed to the encoder
+type UnexpectedValueError struct {
 	Kind reflect.Kind
 }
 
-// Error ...
-func (e *UnsupportedKindError) Error() string {
-	return fmt.Sprintf("Unsupported kind: %+v", e.Kind.String())
+// Error Returns a string representation of the error
+func (e *UnexpectedValueError) Error() string {
+	return fmt.Sprintf("Unexpected value: Kind = %+v", e.Kind)
 }
 
 // UnexpectedKeyTypeError ...

@@ -76,8 +76,9 @@ func (enc *Encoder) encode(rv reflect.Value) error {
 		}
 
 		fallthrough
+
 	default:
-		return &UnsupportedKindError{
+		return &UnexpectedValueError{
 			Kind: rv.Kind(),
 		}
 	}
@@ -105,7 +106,7 @@ func (enc *Encoder) encodeNumber(rv reflect.Value) error {
 	case reflect.Float32, reflect.Float64:
 		d = rv.Float()
 	default:
-		return &UnsupportedKindError{
+		return &UnexpectedValueError{
 			Kind: rv.Kind(),
 		}
 	}
