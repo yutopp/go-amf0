@@ -9,7 +9,7 @@ package amf0
 
 import (
 	"encoding/binary"
-	"fmt"
+	"github.com/pkg/errors"
 	"io"
 	"math"
 	"reflect"
@@ -130,8 +130,7 @@ func (enc *Encoder) encodeBoolean(rv reflect.Value) error {
 func (enc *Encoder) encodeString(rv reflect.Value) error {
 	s := rv.String()
 	if len(s) > 65535 {
-		// TODO: use long string
-		panic("not implemented")
+		return enc.encodeLongString(rv)
 	}
 
 	if err := enc.writeU8(uint8(MarkerString)); err != nil {
@@ -174,7 +173,7 @@ func (enc *Encoder) encodeMapAsObject(rv reflect.Value) error {
 }
 
 func (enc *Encoder) encodeMovieClip(rv reflect.Value) error {
-	panic("Not implemented: MovieClip")
+	return errors.New("Not implemented: MovieClip")
 }
 
 func (enc *Encoder) encodeNull() error {
@@ -182,11 +181,11 @@ func (enc *Encoder) encodeNull() error {
 }
 
 func (enc *Encoder) encodeUndefined(rv reflect.Value) error {
-	panic("Not implemented: Undefined")
+	return errors.New("Not implemented: Undefined")
 }
 
 func (enc *Encoder) encodeReference(rv reflect.Value) error {
-	panic("Not implemented: Reference")
+	return errors.New("Not implemented: Reference")
 }
 
 func (enc *Encoder) encodeMapAsECMAArray(rv reflect.Value) error {
@@ -251,7 +250,9 @@ func (enc *Encoder) encodeDate(rv reflect.Value) error {
 	t = t.In(time.UTC) // Time zone is not supported yet, thus force convert to UTC. TODO: fix
 
 	if t.UnixNano()%int64(time.Millisecond) != 0 {
-		return fmt.Errorf("Date time of nano sec is not supported: Expected = 0, Actual = %d", t.UnixNano()%int64(time.Millisecond))
+		return errors.Errorf("Date time of nano sec is not supported: Expected = 0, Actual = %d",
+			t.UnixNano()%int64(time.Millisecond),
+		)
 	}
 
 	unixMs := float64(t.UnixNano() / int64(time.Millisecond))
@@ -269,23 +270,23 @@ func (enc *Encoder) encodeDate(rv reflect.Value) error {
 }
 
 func (enc *Encoder) encodeLongString(rv reflect.Value) error {
-	panic("Not implemented: LongString")
+	return errors.New("Not implemented: LongString")
 }
 
 func (enc *Encoder) encodeUnsupported(rv reflect.Value) error {
-	panic("Not implemented: Unsupported")
+	return errors.New("Not implemented: Unsupported")
 }
 
 func (enc *Encoder) encodeRecordSet(rv reflect.Value) error {
-	panic("Not implemented: RecordSet")
+	return errors.New("Not implemented: RecordSet")
 }
 
 func (enc *Encoder) encodeXMLDocument(rv reflect.Value) error {
-	panic("Not implemented: XMLDocument")
+	return errors.New("Not implemented: XMLDocument")
 }
 
 func (enc *Encoder) encodeTypedObject(rv reflect.Value) error {
-	panic("Not implemented: TypedObject")
+	return errors.New("Not implemented: TypedObject")
 }
 
 func (enc *Encoder) writeU8(num uint8) error {

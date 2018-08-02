@@ -10,7 +10,6 @@ package amf0
 import (
 	"encoding/binary"
 	"encoding/hex"
-	"fmt"
 	"github.com/pkg/errors"
 	"io"
 	"math"
@@ -357,8 +356,9 @@ func (dec *Decoder) decodeStrictArray(rv reflect.Value) error {
 		return wrapEOF(err)
 	}
 	if length > math.MaxInt32 {
-		// specification said "maximum 4294967295", however we cannot support that... TODO: support if possible
-		return fmt.Errorf("Unsupported array length: Expected <= %d, Actual = %d", math.MaxInt32, length)
+		// The specification said "maximum 4294967295", however we cannot support that...
+		// TODO: Support if possible
+		return errors.Errorf("Unsupported array length: Expected <= %d, Actual = %d", math.MaxInt32, length)
 	}
 
 	if rv.Kind() == reflect.Interface || rv.Kind() == reflect.Slice {
@@ -375,7 +375,10 @@ func (dec *Decoder) decodeStrictArray(rv reflect.Value) error {
 
 	if rv.Kind() == reflect.Slice || rv.Kind() == reflect.Array {
 		if rv.Len() != int(length) {
-			return fmt.Errorf("Length of array/slice is different: Expected = %d, Actual = %d", int(length), rv.Len())
+			return errors.Errorf("Length of array/slice is different: Expected = %d, Actual = %d",
+				int(length),
+				rv.Len(),
+			)
 		}
 	}
 
