@@ -17,6 +17,13 @@ type testCase struct {
 	Binary []byte
 }
 
+var number20ForAddr = 20
+
+type sampleObject struct {
+	A string `amf0:"a"`
+	B int    `amf0:"b"`
+}
+
 var testCases = []testCase{
 	testCase{
 		Name:  "Number(Int)",
@@ -28,6 +35,7 @@ var testCases = []testCase{
 			0x40, 0x24, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		},
 	},
+
 	testCase{
 		Name:  "Boolean (false)",
 		Value: false,
@@ -55,40 +63,6 @@ var testCases = []testCase{
 		// 0x00, 0x03: Length(3: u16) BigEndian
 		// 0x61, 0x62, 0x63: Value(abc: []byte)
 		Binary: []byte{0x02, 0x00, 0x03, 0x61, 0x62, 0x63},
-	},
-	testCase{
-		Name: "Map",
-		Value: map[string]interface{}{
-			"a": "s",
-			"b": float64(42),
-		},
-		Binary: []byte{
-			// Object Marker
-			0x03,
-			// - Length(1: u16) BigEndian
-			0x00, 0x01,
-			//   Key(a: []byte)
-			0x61,
-			//   - String Marker
-			0x02,
-			//     Length(1: u16) BigEndian
-			0x00, 0x01,
-			//     Value(s: []byte)
-			0x73,
-			// - Length(1: u16) BigEndian
-			0x00, 0x01,
-			//   Key(b: []byte)
-			0x62,
-			//   - Number Marker
-			0x00,
-			//     Value(42: double) BigEndian
-			0x40, 0x45, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			// - Length(0: u16) BigEndian
-			0x00, 0x00,
-			//   Key(empty)
-			//   - ObjectEndMarker
-			0x09,
-		},
 	},
 	testCase{
 		Name:  "Nil",
@@ -162,5 +136,56 @@ var testCases = []testCase{
 			// Time zone
 			0x00, 0x00,
 		},
+	},
+}
+
+var onlyEncodingTestCases = []testCase{
+	ptrNestedNumberTest,
+	objectTest,
+}
+
+var ptrNestedNumberTest = testCase{
+	Name:  "Number(Int ptr)",
+	Value: &number20ForAddr,
+	Binary: []byte{
+		// Number Marker
+		0x00,
+		// Value(20: double) BigEndian
+		0x40, 0x34, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	},
+}
+
+var objectTest = testCase{
+	Name: "Object",
+	Value: sampleObject{
+		A: "s",
+		B: 42,
+	},
+	Binary: []byte{
+		// Object Marker
+		0x03,
+		// - Length(1: u16) BigEndian
+		0x00, 0x01,
+		//   Key(a: []byte)
+		0x61,
+		//   - String Marker
+		0x02,
+		//     Length(1: u16) BigEndian
+		0x00, 0x01,
+		//     Value(s: []byte)
+		0x73,
+		// - Length(1: u16) BigEndian
+		0x00, 0x01,
+		//   Key(b: []byte)
+		0x62,
+		//   - Number Marker
+		0x00,
+		//     Value(42: double) BigEndian
+		0x40, 0x45, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		// - Length(0: u16) BigEndian
+		0x00, 0x00,
+		//   Key(empty)
+		//   - ObjectEndMarker
+		0x09,
 	},
 }

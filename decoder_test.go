@@ -55,6 +55,16 @@ func TestDecodeNumber(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, float64(10), v)
 	})
+
+	t.Run(ptrNestedNumberTest.Name, func(t *testing.T) {
+		r := bytes.NewReader(ptrNestedNumberTest.Binary)
+		dec := NewDecoder(r)
+
+		var v float64
+		err := dec.Decode(&v)
+		assert.Nil(t, err)
+		assert.Equal(t, float64(20), v)
+	})
 }
 
 func TestDecodePartialNumber(t *testing.T) {
@@ -111,6 +121,67 @@ func TestDecodeNil(t *testing.T) {
 		var v int
 		err := dec.Decode(&v)
 		assert.NotNil(t, err)
+	})
+}
+
+func TestDecodeObject(t *testing.T) {
+	t.Run("assignable to interface", func(t *testing.T) {
+		r := bytes.NewReader(objectTest.Binary)
+		dec := NewDecoder(r)
+
+		var v interface{}
+		err := dec.Decode(&v)
+		assert.Nil(t, err)
+		assert.Equal(t, map[string]interface{}{
+			"a": "s",
+			"b": float64(42),
+		}, v)
+	})
+
+	t.Run("assignable to map", func(t *testing.T) {
+		r := bytes.NewReader(objectTest.Binary)
+		dec := NewDecoder(r)
+
+		var v map[string]interface{}
+		err := dec.Decode(&v)
+		assert.Nil(t, err)
+		assert.Equal(t, map[string]interface{}{
+			"a": "s",
+			"b": float64(42),
+		}, v)
+	})
+
+	t.Run("assignable to map which has invalid type", func(t *testing.T) {
+		r := bytes.NewReader(objectTest.Binary)
+		dec := NewDecoder(r)
+
+		var v map[string]int
+		err := dec.Decode(&v)
+		assert.NotNil(t, err)
+	})
+
+	t.Run("assignable to struct", func(t *testing.T) {
+		r := bytes.NewReader(objectTest.Binary)
+		dec := NewDecoder(r)
+
+		var v sampleObject
+		err := dec.Decode(&v)
+		assert.Nil(t, err)
+		assert.Equal(t, sampleObject{
+			A: "s",
+			B: 42,
+		}, v)
+	})
+
+	t.Run("assignable to struct which keys are not exists", func(t *testing.T) {
+		r := bytes.NewReader(objectTest.Binary)
+		dec := NewDecoder(r)
+
+		type empty struct{}
+		var v empty
+		err := dec.Decode(&v)
+		assert.Nil(t, err)
+		assert.Equal(t, empty{}, v)
 	})
 }
 

@@ -51,4 +51,4 @@ const (
 type ECMAArray map[string]interface{}
 
 // ObjectEnd ObjectEnd representation in Golang
-var ObjectEnd = &struct{}{}
+var ObjectEnd = struct{}{}

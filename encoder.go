@@ -43,6 +43,9 @@ func (enc *Encoder) Reset(w io.Writer) {
 
 func (enc *Encoder) encode(rv reflect.Value) error {
 	switch rv.Kind() {
+	case reflect.Ptr:
+		return enc.encode(rv.Elem())
+
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		fallthrough
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
@@ -71,15 +74,15 @@ func (enc *Encoder) encode(rv reflect.Value) error {
 	case reflect.Invalid:
 		return enc.encodeNull()
 
-	case reflect.Struct, reflect.Ptr:
+	case reflect.Struct:
 		switch rv.Type() {
 		case reflect.TypeOf(ObjectEnd):
 			return enc.encodeObjectEnd()
 		case reflect.TypeOf(time.Time{}):
 			return enc.encodeDate(rv)
+		default:
+			return enc.encodeObject(rv)
 		}
-
-		fallthrough
 
 	default:
 		return &UnexpectedValueError{
@@ -94,6 +97,34 @@ func (enc *Encoder) encodeMap(rv reflect.Value) error {
 	}
 
 	return enc.encodeMapAsObject(rv)
+}
+
+func (enc *Encoder) encodeObject(rv reflect.Value) error {
+	if err := enc.writeU8(uint8(MarkerObject)); err != nil {
+		return err
+	}
+
+	ty := rv.Type()
+	numFields := rv.NumField()
+	for i := 0; i < numFields; i++ {
+		fieldType := ty.Field(i)
+
+		key := fieldType.Tag.Get("amf0")
+		if key == "" {
+			key = fieldType.Name
+		}
+
+		if err := enc.writeUTF8(key); err != nil {
+			return err
+		}
+
+		value := rv.Field(i)
+		if err := enc.encode(value); err != nil {
+			return err
+		}
+	}
+
+	return enc.encodeObjectEnd()
 }
 
 func (enc *Encoder) encodeNumber(rv reflect.Value) error {

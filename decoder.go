@@ -180,13 +180,39 @@ func (dec *Decoder) decodeString(rv reflect.Value) error {
 		return err
 	}
 
-	rv.Set(reflect.ValueOf(str))
+	switch rv.Kind() {
+	case reflect.String, reflect.Interface:
+		rv.Set(reflect.ValueOf(str))
+
+	default:
+		return &NotAssignableError{
+			Message: "Not string type",
+			Kind:    rv.Kind(),
+			Type:    rv.Type(),
+		}
+	}
 
 	return nil
 }
 
 func (dec *Decoder) decodeObject(rv reflect.Value) error {
-	obj := make(map[string]interface{}) // TODO: optimize
+	rv, err := indirect(rv)
+	if err != nil {
+		return err
+	}
+
+	switch rv.Kind() {
+	case reflect.Interface:
+		if rv.IsNil() {
+			rv.Set(reflect.MakeMap(reflect.TypeOf(map[string]interface{}{})))
+			rv = rv.Elem()
+		}
+
+	case reflect.Map:
+		if rv.IsNil() {
+			rv.Set(reflect.MakeMap(rv.Type()))
+		}
+	}
 
 	for {
 		key, err := dec.readUTF8()
@@ -207,20 +233,48 @@ func (dec *Decoder) decodeObject(rv reflect.Value) error {
 			break
 		}
 
-		var value interface{}
-		if err := dec.Decode(&value); err != nil {
-			return err
+		switch rv.Kind() {
+		case reflect.Map:
+			v := reflect.New(rv.Type().Elem())
+			if err := dec.decode(v); err != nil {
+				return err
+			}
+
+			rv.SetMapIndex(reflect.ValueOf(key), v.Elem())
+
+		case reflect.Struct:
+			var v reflect.Value
+			found := false
+
+			for i := 0; i < rv.NumField(); i++ {
+				fieldTy := rv.Type().Field(i)
+				if fieldTy.Name == key {
+					goto foundField
+				}
+
+				if name, ok := fieldTy.Tag.Lookup("amf0"); !ok {
+					continue
+				} else {
+					if name != key {
+						continue
+					}
+				}
+
+			foundField:
+				v = rv.Field(i).Addr()
+				found = true
+			}
+			if !found {
+				// discard
+				var null interface{}
+				v = reflect.ValueOf(&null)
+			}
+
+			if err := dec.decode(v); err != nil {
+				return err
+			}
 		}
-
-		obj[key] = value
 	}
-
-	rv, err := indirect(rv)
-	if err != nil {
-		return err
-	}
-
-	rv.Set(reflect.ValueOf(obj))
 
 	return nil
 }
