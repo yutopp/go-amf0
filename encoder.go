@@ -9,12 +9,13 @@ package amf0
 
 import (
 	"encoding/binary"
-	"github.com/pkg/errors"
 	"io"
 	"math"
 	"reflect"
 	"sort"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 // Encoder Encode objects in Golang into AMF0 and writes to the writer

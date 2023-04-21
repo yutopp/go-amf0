@@ -25,7 +25,7 @@ type sampleObject struct {
 }
 
 var testCases = []testCase{
-	testCase{
+	{
 		Name:  "Number(Int)",
 		Value: float64(10),
 		Binary: []byte{
@@ -36,7 +36,7 @@ var testCases = []testCase{
 		},
 	},
 
-	testCase{
+	{
 		Name:  "Boolean (false)",
 		Value: false,
 		Binary: []byte{
@@ -46,7 +46,7 @@ var testCases = []testCase{
 			0x00,
 		},
 	},
-	testCase{
+	{
 		Name:  "Boolean (true)",
 		Value: true,
 		Binary: []byte{
@@ -56,7 +56,7 @@ var testCases = []testCase{
 			0x01,
 		},
 	},
-	testCase{
+	{
 		Name:  "String",
 		Value: "abc",
 		// 0x02: String Marker
@@ -64,7 +64,7 @@ var testCases = []testCase{
 		// 0x61, 0x62, 0x63: Value(abc: []byte)
 		Binary: []byte{0x02, 0x00, 0x03, 0x61, 0x62, 0x63},
 	},
-	testCase{
+	{
 		Name:  "Nil",
 		Value: nil,
 		Binary: []byte{
@@ -72,7 +72,7 @@ var testCases = []testCase{
 			0x05,
 		},
 	},
-	testCase{
+	{
 		Name: "ECMA Array",
 		Value: ECMAArray{
 			"a": "str",
@@ -108,7 +108,7 @@ var testCases = []testCase{
 			0x09,
 		},
 	},
-	testCase{
+	{
 		Name: "Strict Array",
 		Value: []interface{}{
 			"str",
@@ -125,7 +125,7 @@ var testCases = []testCase{
 			0x00, 0x40, 0x24, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		},
 	},
-	testCase{
+	{
 		Name:  "Date",
 		Value: time.Unix(0x1234, 0).In(time.UTC),
 		Binary: []byte{

@@ -10,12 +10,13 @@ package amf0
 import (
 	"encoding/binary"
 	"encoding/hex"
-	"github.com/pkg/errors"
 	"io"
 	"math"
 	"reflect"
 	"time"
 	"unicode/utf8"
+
+	"github.com/pkg/errors"
 )
 
 // Decoder Read from the reader and decode them into objects in Golang
