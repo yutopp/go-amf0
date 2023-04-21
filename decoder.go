@@ -10,13 +10,12 @@ package amf0
 import (
 	"encoding/binary"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"math"
 	"reflect"
 	"time"
 	"unicode/utf8"
-
-	"github.com/pkg/errors"
 )
 
 // Decoder Read from the reader and decode them into objects in Golang
@@ -305,7 +304,7 @@ func (dec *Decoder) decodeObjectProperty(rk *string, rv reflect.Value) (bool, er
 }
 
 func (dec *Decoder) decodeMovieClip(rv reflect.Value) error {
-	return errors.New("Not implemented: MovieClip")
+	return fmt.Errorf("not implemented: MovieClip")
 }
 
 func (dec *Decoder) decodeNull(rv reflect.Value) error {
@@ -328,11 +327,11 @@ func (dec *Decoder) decodeNull(rv reflect.Value) error {
 }
 
 func (dec *Decoder) decodeUndefined(rv reflect.Value) error {
-	return errors.New("Not implemented: Undefined")
+	return fmt.Errorf("not implemented: Undefined")
 }
 
 func (dec *Decoder) decodeReference(rv reflect.Value) error {
-	return errors.New("Not implemented: Reference")
+	return fmt.Errorf("not implemented: Reference")
 }
 
 func (dec *Decoder) decodeECMAArray(rv reflect.Value) error {
@@ -417,7 +416,7 @@ func (dec *Decoder) decodeStrictArray(rv reflect.Value) error {
 	if length > math.MaxInt32 {
 		// The specification said "maximum 4294967295", however we cannot support that...
 		// TODO: Support if possible
-		return errors.Errorf("Unsupported array length: Expected <= %d, Actual = %d", math.MaxInt32, length)
+		return fmt.Errorf("unsupported array length: Expected <= %d, Actual = %d", math.MaxInt32, length)
 	}
 
 	if rv.Kind() == reflect.Interface || rv.Kind() == reflect.Slice {
@@ -434,10 +433,7 @@ func (dec *Decoder) decodeStrictArray(rv reflect.Value) error {
 
 	if rv.Kind() == reflect.Slice || rv.Kind() == reflect.Array {
 		if rv.Len() != int(length) {
-			return errors.Errorf("Length of array/slice is different: Expected = %d, Actual = %d",
-				int(length),
-				rv.Len(),
-			)
+			return fmt.Errorf("length of array/slice is different: Expected = %d, Actual = %d", int(length), rv.Len())
 		}
 	}
 
@@ -496,21 +492,21 @@ func (dec *Decoder) decodeDate(rv reflect.Value) error {
 }
 
 func (dec *Decoder) decodeLongString(rv reflect.Value) error {
-	return errors.New("Not implemented: LongString")
+	return fmt.Errorf("not implemented: LongString")
 }
 
 // skip Unsupported
 
 func (dec *Decoder) decodeRecordSet(rv reflect.Value) error {
-	return errors.New("Not implemented: RecordSet")
+	return fmt.Errorf("not implemented: RecordSet")
 }
 
 func (dec *Decoder) decodeXMLDocument(rv reflect.Value) error {
-	return errors.New("Not implemented: XMLDocument")
+	return fmt.Errorf("not implemented: XMLDocument")
 }
 
 func (dec *Decoder) decodeTypedObject(rv reflect.Value) error {
-	return errors.New("Not implemented: TypedObject")
+	return fmt.Errorf("not implemented: TypedObject")
 }
 
 func (dec *Decoder) readU8() (uint8, error) {

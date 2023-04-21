@@ -9,13 +9,12 @@ package amf0
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 	"math"
 	"reflect"
 	"sort"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 // Encoder Encode objects in Golang into AMF0 and writes to the writer
@@ -210,7 +209,7 @@ func (enc *Encoder) encodeMapAsObject(rv reflect.Value) error {
 
 //lint:ignore U1000 Maybe used in the future
 func (enc *Encoder) encodeMovieClip(rv reflect.Value) error {
-	return errors.New("Not implemented: MovieClip")
+	return fmt.Errorf("not implemented: MovieClip")
 }
 
 func (enc *Encoder) encodeNull() error {
@@ -219,12 +218,12 @@ func (enc *Encoder) encodeNull() error {
 
 //lint:ignore U1000 Maybe used in the future
 func (enc *Encoder) encodeUndefined(rv reflect.Value) error {
-	return errors.New("Not implemented: Undefined")
+	return fmt.Errorf("not implemented: Undefined")
 }
 
 //lint:ignore U1000 Maybe used in the future
 func (enc *Encoder) encodeReference(rv reflect.Value) error {
-	return errors.New("Not implemented: Reference")
+	return fmt.Errorf("not implemented: Reference")
 }
 
 func (enc *Encoder) encodeMapAsECMAArray(rv reflect.Value) error {
@@ -289,9 +288,7 @@ func (enc *Encoder) encodeDate(rv reflect.Value) error {
 	t = t.In(time.UTC) // Time zone is not supported yet, thus force convert to UTC. TODO: fix
 
 	if t.UnixNano()%int64(time.Millisecond) != 0 {
-		return errors.Errorf("Date time of nano sec is not supported: Expected = 0, Actual = %d",
-			t.UnixNano()%int64(time.Millisecond),
-		)
+		return fmt.Errorf("date time of nano sec is not supported: Expected = 0, Actual = %d", t.UnixNano()%int64(time.Millisecond))
 	}
 
 	unixMs := float64(t.UnixNano() / int64(time.Millisecond))
@@ -309,27 +306,27 @@ func (enc *Encoder) encodeDate(rv reflect.Value) error {
 }
 
 func (enc *Encoder) encodeLongString(rv reflect.Value) error {
-	return errors.New("Not implemented: LongString")
+	return fmt.Errorf("not implemented: LongString")
 }
 
 //lint:ignore U1000 Maybe used in the future
 func (enc *Encoder) encodeUnsupported(rv reflect.Value) error {
-	return errors.New("Not implemented: Unsupported")
+	return fmt.Errorf("not implemented: Unsupported")
 }
 
 //lint:ignore U1000 Maybe used in the future
 func (enc *Encoder) encodeRecordSet(rv reflect.Value) error {
-	return errors.New("Not implemented: RecordSet")
+	return fmt.Errorf("not implemented: RecordSet")
 }
 
 //lint:ignore U1000 Maybe used in the future
 func (enc *Encoder) encodeXMLDocument(rv reflect.Value) error {
-	return errors.New("Not implemented: XMLDocument")
+	return fmt.Errorf("not implemented: XMLDocument")
 }
 
 //lint:ignore U1000 Maybe used in the future
 func (enc *Encoder) encodeTypedObject(rv reflect.Value) error {
-	return errors.New("Not implemented: TypedObject")
+	return fmt.Errorf("not implemented: TypedObject")
 }
 
 func (enc *Encoder) writeU8(num uint8) error {
