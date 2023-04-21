@@ -11,7 +11,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEncodeCommon(t *testing.T) {
@@ -29,8 +29,8 @@ func TestEncodeCommon(t *testing.T) {
 			enc.sortKeys = true // for debuging
 
 			err := enc.Encode(tc.Value)
-			assert.Nil(t, err)
-			assert.Equal(t, tc.Binary, buf.Bytes())
+			require.Nil(t, err)
+			require.Equal(t, tc.Binary, buf.Bytes())
 		})
 	}
 }
@@ -40,5 +40,5 @@ func TestEncodeObjectEnd(t *testing.T) {
 	enc := NewEncoder(buf)
 
 	err := enc.Encode(ObjectEnd)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 }

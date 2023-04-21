@@ -11,7 +11,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDecodeCommon(t *testing.T) {
@@ -26,10 +26,10 @@ func TestDecodeCommon(t *testing.T) {
 
 			var v interface{}
 			err := dec.Decode(&v)
-			assert.Nil(t, err)
-			assert.Equal(t, tc.Value, v)
+			require.Nil(t, err)
+			require.Equal(t, tc.Value, v)
 
-			assert.Equal(t, 0, r.Len())
+			require.Equal(t, 0, r.Len())
 		})
 	}
 }
@@ -43,8 +43,8 @@ func TestDecodeNumber(t *testing.T) {
 
 		var v int
 		err := dec.Decode(&v)
-		assert.Nil(t, err)
-		assert.Equal(t, 10, v)
+		require.Nil(t, err)
+		require.Equal(t, 10, v)
 	})
 
 	t.Run("float64", func(t *testing.T) {
@@ -53,8 +53,8 @@ func TestDecodeNumber(t *testing.T) {
 
 		var v float64
 		err := dec.Decode(&v)
-		assert.Nil(t, err)
-		assert.Equal(t, float64(10), v)
+		require.Nil(t, err)
+		require.Equal(t, float64(10), v)
 	})
 
 	t.Run(ptrNestedNumberTest.Name, func(t *testing.T) {
@@ -63,8 +63,8 @@ func TestDecodeNumber(t *testing.T) {
 
 		var v float64
 		err := dec.Decode(&v)
-		assert.Nil(t, err)
-		assert.Equal(t, float64(20), v)
+		require.Nil(t, err)
+		require.Equal(t, float64(20), v)
 	})
 }
 
@@ -77,7 +77,7 @@ func TestDecodePartialNumber(t *testing.T) {
 
 		var v int
 		err := dec.Decode(&v)
-		assert.EqualError(t, err, "unexpected EOF")
+		require.EqualError(t, err, "unexpected EOF")
 	}
 
 	{
@@ -88,7 +88,7 @@ func TestDecodePartialNumber(t *testing.T) {
 
 		var v int
 		err := dec.Decode(&v)
-		assert.EqualError(t, err, "unexpected EOF")
+		require.EqualError(t, err, "unexpected EOF")
 	}
 }
 
@@ -101,8 +101,8 @@ func TestDecodeNil(t *testing.T) {
 
 		var v interface{}
 		err := dec.Decode(&v)
-		assert.Nil(t, err)
-		assert.Equal(t, nil, v)
+		require.Nil(t, err)
+		require.Equal(t, nil, v)
 	})
 
 	t.Run("assignable to map", func(t *testing.T) {
@@ -111,8 +111,8 @@ func TestDecodeNil(t *testing.T) {
 
 		var v map[int]int
 		err := dec.Decode(&v)
-		assert.Nil(t, err)
-		assert.Equal(t, map[int]int(nil), v)
+		require.Nil(t, err)
+		require.Equal(t, map[int]int(nil), v)
 	})
 
 	t.Run("assignable to int (set to not reference value will fail)", func(t *testing.T) {
@@ -121,7 +121,7 @@ func TestDecodeNil(t *testing.T) {
 
 		var v int
 		err := dec.Decode(&v)
-		assert.NotNil(t, err)
+		require.NotNil(t, err)
 	})
 }
 
@@ -132,8 +132,8 @@ func TestDecodeObject(t *testing.T) {
 
 		var v interface{}
 		err := dec.Decode(&v)
-		assert.Nil(t, err)
-		assert.Equal(t, map[string]interface{}{
+		require.Nil(t, err)
+		require.Equal(t, map[string]interface{}{
 			"a": "s",
 			"b": float64(42),
 		}, v)
@@ -145,8 +145,8 @@ func TestDecodeObject(t *testing.T) {
 
 		var v map[string]interface{}
 		err := dec.Decode(&v)
-		assert.Nil(t, err)
-		assert.Equal(t, map[string]interface{}{
+		require.Nil(t, err)
+		require.Equal(t, map[string]interface{}{
 			"a": "s",
 			"b": float64(42),
 		}, v)
@@ -158,7 +158,7 @@ func TestDecodeObject(t *testing.T) {
 
 		var v map[string]int
 		err := dec.Decode(&v)
-		assert.NotNil(t, err)
+		require.NotNil(t, err)
 	})
 
 	t.Run("assignable to struct", func(t *testing.T) {
@@ -167,8 +167,8 @@ func TestDecodeObject(t *testing.T) {
 
 		var v sampleObject
 		err := dec.Decode(&v)
-		assert.Nil(t, err)
-		assert.Equal(t, sampleObject{
+		require.Nil(t, err)
+		require.Equal(t, sampleObject{
 			A: "s",
 			B: 42,
 		}, v)
@@ -181,8 +181,8 @@ func TestDecodeObject(t *testing.T) {
 		type empty struct{}
 		var v empty
 		err := dec.Decode(&v)
-		assert.Nil(t, err)
-		assert.Equal(t, empty{}, v)
+		require.Nil(t, err)
+		require.Equal(t, empty{}, v)
 	})
 }
 
@@ -204,8 +204,8 @@ func TestDecodeECMAArray(t *testing.T) {
 
 		var v interface{}
 		err := dec.Decode(&v)
-		assert.Nil(t, err)
-		assert.Equal(t, ECMAArray{"a": nil}, v)
+		require.Nil(t, err)
+		require.Equal(t, ECMAArray{"a": nil}, v)
 	})
 
 	t.Run("assignable to map", func(t *testing.T) {
@@ -214,8 +214,8 @@ func TestDecodeECMAArray(t *testing.T) {
 
 		var v map[string]interface{}
 		err := dec.Decode(&v)
-		assert.Nil(t, err)
-		assert.Equal(t, map[string]interface{}{"a": nil}, v)
+		require.Nil(t, err)
+		require.Equal(t, map[string]interface{}{"a": nil}, v)
 	})
 
 	t.Run("assignable to map which has not string type key will fail", func(t *testing.T) {
@@ -224,7 +224,7 @@ func TestDecodeECMAArray(t *testing.T) {
 
 		var v map[int]interface{}
 		err := dec.Decode(&v)
-		assert.NotNil(t, err)
+		require.NotNil(t, err)
 	})
 
 	t.Run("assignable to map which has unmatched value type will fail", func(t *testing.T) {
@@ -233,7 +233,7 @@ func TestDecodeECMAArray(t *testing.T) {
 
 		var v map[string]int
 		err := dec.Decode(&v)
-		assert.NotNil(t, err)
+		require.NotNil(t, err)
 	})
 
 	t.Run("assignable to int (set to not reference value will fail)", func(t *testing.T) {
@@ -242,7 +242,7 @@ func TestDecodeECMAArray(t *testing.T) {
 
 		var v int
 		err := dec.Decode(&v)
-		assert.NotNil(t, err)
+		require.NotNil(t, err)
 	})
 }
 
@@ -264,8 +264,8 @@ func TestDecodeStrictArraySame(t *testing.T) {
 
 		var v []string
 		err := dec.Decode(&v)
-		assert.Nil(t, err)
-		assert.Equal(t, []string{"str", "str"}, v)
+		require.Nil(t, err)
+		require.Equal(t, []string{"str", "str"}, v)
 	})
 
 	t.Run("assignable to typed array (same length)", func(t *testing.T) {
@@ -274,8 +274,8 @@ func TestDecodeStrictArraySame(t *testing.T) {
 
 		var v [2]string
 		err := dec.Decode(&v)
-		assert.Nil(t, err)
-		assert.Equal(t, [2]string{"str", "str"}, v)
+		require.Nil(t, err)
+		require.Equal(t, [2]string{"str", "str"}, v)
 	})
 
 	t.Run("assignable to typed array (different length)", func(t *testing.T) {
@@ -284,7 +284,7 @@ func TestDecodeStrictArraySame(t *testing.T) {
 
 		var v [10]string
 		err := dec.Decode(&v)
-		assert.NotNil(t, err) // should support an array which has length that more than of equals to length of an encoded strict array?
+		require.NotNil(t, err) // should support an array which has length that more than of equals to length of an encoded strict array?
 	})
 }
 
@@ -306,6 +306,6 @@ func TestDecodeStrictArrayHetero(t *testing.T) {
 
 		var v []string
 		err := dec.Decode(&v)
-		assert.NotNil(t, err)
+		require.NotNil(t, err)
 	})
 }
