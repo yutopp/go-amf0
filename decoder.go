@@ -424,7 +424,7 @@ func (dec *Decoder) decodeStrictArray(rv reflect.Value) error {
 		if rv.IsNil() {
 			switch rv.Kind() {
 			case reflect.Interface:
-				rv.Set(reflect.ValueOf(make([]interface{}, int(length), int(length))))
+				rv.Set(reflect.ValueOf(make([]interface{}, int(length))))
 				rv = rv.Elem()
 			case reflect.Slice:
 				rv.Set(reflect.MakeSlice(rv.Type(), int(length), int(length)))
@@ -484,10 +484,11 @@ func (dec *Decoder) decodeDate(rv reflect.Value) error {
 
 	t := time.Unix(int64(unixMs)/1000, int64(unixMs)%1000*int64(time.Nanosecond)).In(time.UTC)
 
-	if tz != 0x00 {
-		// Timezone is specified
-		// TODO: support
-	}
+	// Timezone is specified
+	// if tz != 0x00 {
+	// TODO: support
+	// }
+	_ = tz
 
 	rv.Set(reflect.ValueOf(t))
 

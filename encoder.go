@@ -208,6 +208,7 @@ func (enc *Encoder) encodeMapAsObject(rv reflect.Value) error {
 	return enc.encodeObjectEnd()
 }
 
+//lint:ignore U1000 Maybe used in the future
 func (enc *Encoder) encodeMovieClip(rv reflect.Value) error {
 	return errors.New("Not implemented: MovieClip")
 }
@@ -216,10 +217,12 @@ func (enc *Encoder) encodeNull() error {
 	return enc.writeU8(uint8(MarkerNull))
 }
 
+//lint:ignore U1000 Maybe used in the future
 func (enc *Encoder) encodeUndefined(rv reflect.Value) error {
 	return errors.New("Not implemented: Undefined")
 }
 
+//lint:ignore U1000 Maybe used in the future
 func (enc *Encoder) encodeReference(rv reflect.Value) error {
 	return errors.New("Not implemented: Reference")
 }
@@ -309,18 +312,22 @@ func (enc *Encoder) encodeLongString(rv reflect.Value) error {
 	return errors.New("Not implemented: LongString")
 }
 
+//lint:ignore U1000 Maybe used in the future
 func (enc *Encoder) encodeUnsupported(rv reflect.Value) error {
 	return errors.New("Not implemented: Unsupported")
 }
 
+//lint:ignore U1000 Maybe used in the future
 func (enc *Encoder) encodeRecordSet(rv reflect.Value) error {
 	return errors.New("Not implemented: RecordSet")
 }
 
+//lint:ignore U1000 Maybe used in the future
 func (enc *Encoder) encodeXMLDocument(rv reflect.Value) error {
 	return errors.New("Not implemented: XMLDocument")
 }
 
+//lint:ignore U1000 Maybe used in the future
 func (enc *Encoder) encodeTypedObject(rv reflect.Value) error {
 	return errors.New("Not implemented: TypedObject")
 }
