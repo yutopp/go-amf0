@@ -60,9 +60,15 @@ func (enc *Encoder) encode(rv reflect.Value) error {
 		return enc.encodeString(rv)
 
 	case reflect.Map:
+		if rv.IsNil() {
+			return enc.encodeNull()
+		}
 		return enc.encodeMap(rv)
 
 	case reflect.Array, reflect.Slice:
+		if rv.IsNil() {
+			return enc.encodeNull()
+		}
 		return enc.encodeStrictArray(rv)
 
 	case reflect.Interface:

@@ -12,9 +12,10 @@ import (
 )
 
 type testCase struct {
-	Name   string
-	Value  interface{}
-	Binary []byte
+	Name      string
+	Value     interface{}
+	Binary    []byte
+	AssumeNil bool
 }
 
 var number20ForAddr = 20
@@ -136,6 +137,42 @@ var testCases = []testCase{
 			// Time zone
 			0x00, 0x00,
 		},
+	},
+	{
+		Name:  "Nil",
+		Value: nil,
+		Binary: []byte{
+			// null Marker
+			0x05,
+		},
+		AssumeNil: true,
+	},
+	{
+		Name:  "Nil Object",
+		Value: (map[string]interface{})(nil),
+		Binary: []byte{
+			// null Marker
+			0x05,
+		},
+		AssumeNil: true,
+	},
+	{
+		Name:  "Nil Slice",
+		Value: ([]interface{})(nil),
+		Binary: []byte{
+			// null Marker
+			0x05,
+		},
+		AssumeNil: true,
+	},
+	{
+		Name:  "Nil ECMAArray",
+		Value: (ECMAArray)(nil),
+		Binary: []byte{
+			// null Marker
+			0x05,
+		},
+		AssumeNil: true,
 	},
 }
 

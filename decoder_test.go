@@ -26,10 +26,14 @@ func TestDecodeCommon(t *testing.T) {
 
 			var v interface{}
 			err := dec.Decode(&v)
-			require.Nil(t, err)
-			require.Equal(t, tc.Value, v)
+			require.NoError(t, err)
+			if tc.AssumeNil {
+				require.Nil(t, v)
+			} else {
+				require.Equal(t, tc.Value, v)
+			}
 
-			require.Equal(t, 0, r.Len())
+			require.Equal(t, 0, r.Len()) // Assure that all bytes are consumed
 		})
 	}
 }
