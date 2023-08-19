@@ -15,7 +15,7 @@ import (
 )
 
 func TestEncodeCommon(t *testing.T) {
-	allTestCases := append(append([]testCase{}, testCases...), onlyEncodingTestCases...)
+	allTestCases := append(append([]testCase{}, testCases...), ptrNestedNumberTest, objectTest)
 
 	for _, tc := range allTestCases {
 		tc := tc // capture
@@ -40,4 +40,13 @@ func TestEncodeObjectEnd(t *testing.T) {
 
 	err := enc.Encode(ObjectEnd)
 	require.Nil(t, err)
+}
+
+func TestEncodeUnsupportedTypes(t *testing.T) {
+	buf := bytes.NewBuffer([]byte{})
+	enc := NewEncoder(buf)
+
+	ch := make(chan int) // cannot encode
+	err := enc.Encode(ch)
+	require.Error(t, err)
 }

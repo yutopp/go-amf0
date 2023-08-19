@@ -26,10 +26,14 @@ func TestDecodeCommon(t *testing.T) {
 
 			var v interface{}
 			err := dec.Decode(&v)
-			require.Nil(t, err)
-			require.Equal(t, tc.Value, v)
+			require.NoError(t, err)
+			if tc.AssumeNil {
+				require.Nil(t, v)
+			} else {
+				require.Equal(t, tc.Value, v)
+			}
 
-			require.Equal(t, 0, r.Len())
+			require.Equal(t, 0, r.Len()) // Assure that all bytes are consumed
 		})
 	}
 }
@@ -101,7 +105,7 @@ func TestDecodeNil(t *testing.T) {
 
 		var v interface{}
 		err := dec.Decode(&v)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, nil, v)
 	})
 
@@ -111,17 +115,46 @@ func TestDecodeNil(t *testing.T) {
 
 		var v map[int]int
 		err := dec.Decode(&v)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, map[int]int(nil), v)
 	})
 
-	t.Run("assignable to int (set to not reference value will fail)", func(t *testing.T) {
+	t.Run("assignable to slice (interface)", func(t *testing.T) {
+		r := bytes.NewReader(bin)
+		dec := NewDecoder(r)
+
+		var v []interface{}
+		err := dec.Decode(&v)
+		require.NoError(t, err)
+		require.Equal(t, []interface{}(nil), v)
+	})
+
+	t.Run("assignable to slice (non-nil primitive)", func(t *testing.T) {
+		r := bytes.NewReader(bin)
+		dec := NewDecoder(r)
+
+		var v []int
+		err := dec.Decode(&v)
+		require.NoError(t, err)
+		require.Equal(t, []int(nil), v)
+	})
+
+	t.Run("NOT assignable to array (despite the length)", func(t *testing.T) {
+		r := bytes.NewReader(bin)
+		dec := NewDecoder(r)
+
+		var v [42]interface{}
+		err := dec.Decode(&v)
+		require.Error(t, err)
+	})
+
+	t.Run("NOT assignable to int (set to not reference value will fail)", func(t *testing.T) {
 		r := bytes.NewReader(bin)
 		dec := NewDecoder(r)
 
 		var v int
 		err := dec.Decode(&v)
-		require.NotNil(t, err)
+		require.Error(t, err)
 	})
 }
 
@@ -264,7 +297,7 @@ func TestDecodeStrictArraySame(t *testing.T) {
 
 		var v []string
 		err := dec.Decode(&v)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, []string{"str", "str"}, v)
 	})
 
@@ -274,7 +307,7 @@ func TestDecodeStrictArraySame(t *testing.T) {
 
 		var v [2]string
 		err := dec.Decode(&v)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, [2]string{"str", "str"}, v)
 	})
 
@@ -284,7 +317,7 @@ func TestDecodeStrictArraySame(t *testing.T) {
 
 		var v [10]string
 		err := dec.Decode(&v)
-		require.NotNil(t, err) // should support an array which has length that more than of equals to length of an encoded strict array?
+		require.Error(t, err) // should support an array which has length that more than of equals to length of an encoded strict array?
 	})
 }
 
@@ -307,5 +340,21 @@ func TestDecodeStrictArrayHetero(t *testing.T) {
 		var v []string
 		err := dec.Decode(&v)
 		require.NotNil(t, err)
+	})
+}
+
+func TestDecodeUnknownMarker(t *testing.T) {
+	bin := []byte{
+		// Unknown Marker
+		0xff,
+	}
+
+	t.Run("Cannot decode", func(t *testing.T) {
+		r := bytes.NewReader(bin)
+		dec := NewDecoder(r)
+
+		var v interface{}
+		err := dec.Decode(&v)
+		require.Error(t, err)
 	})
 }

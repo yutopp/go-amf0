@@ -60,9 +60,15 @@ func (enc *Encoder) encode(rv reflect.Value) error {
 		return enc.encodeString(rv)
 
 	case reflect.Map:
+		if rv.IsNil() {
+			return enc.encodeNull()
+		}
 		return enc.encodeMap(rv)
 
 	case reflect.Array, reflect.Slice:
+		if rv.IsNil() {
+			return enc.encodeNull()
+		}
 		return enc.encodeStrictArray(rv)
 
 	case reflect.Interface:
@@ -285,7 +291,7 @@ func (enc *Encoder) encodeStrictArray(rv reflect.Value) error {
 
 func (enc *Encoder) encodeDate(rv reflect.Value) error {
 	t := rv.Interface().(time.Time)
-	t = t.In(time.UTC) // Time zone is not supported yet, thus force convert to UTC. TODO: fix
+	t = t.In(time.UTC) // Time zone is not supported yet, thus force convert to UTC. TODO: support time zone
 
 	if t.UnixNano()%int64(time.Millisecond) != 0 {
 		return fmt.Errorf("date time of nano sec is not supported: Expected = 0, Actual = %d", t.UnixNano()%int64(time.Millisecond))
