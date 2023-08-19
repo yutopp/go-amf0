@@ -15,7 +15,7 @@ import (
 )
 
 func TestEncodeCommon(t *testing.T) {
-	allTestCases := append(append([]testCase{}, testCases...), onlyEncodingTestCases...)
+	allTestCases := append(append([]testCase{}, testCases...), ptrNestedNumberTest, objectTest)
 
 	for _, tc := range allTestCases {
 		tc := tc // capture

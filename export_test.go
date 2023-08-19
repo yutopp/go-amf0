@@ -18,11 +18,8 @@ type testCase struct {
 	AssumeNil bool
 }
 
-var number20ForAddr = 20
-
-type sampleObject struct {
-	A string `amf0:"a"`
-	B int    `amf0:"b"`
+func intPtr(v int) *int {
+	return &v
 }
 
 var testCases = []testCase{
@@ -72,6 +69,33 @@ var testCases = []testCase{
 			// Null Marker
 			0x05,
 		},
+	},
+	{
+		Name:  "Nil Object",
+		Value: (map[string]interface{})(nil),
+		Binary: []byte{
+			// null Marker
+			0x05,
+		},
+		AssumeNil: true,
+	},
+	{
+		Name:  "Nil Slice",
+		Value: ([]interface{})(nil),
+		Binary: []byte{
+			// null Marker
+			0x05,
+		},
+		AssumeNil: true,
+	},
+	{
+		Name:  "Nil ECMAArray",
+		Value: (ECMAArray)(nil),
+		Binary: []byte{
+			// null Marker
+			0x05,
+		},
+		AssumeNil: true,
 	},
 	{
 		Name: "ECMA Array",
@@ -139,57 +163,55 @@ var testCases = []testCase{
 		},
 	},
 	{
-		Name:  "Nil",
-		Value: nil,
-		Binary: []byte{
-			// null Marker
-			0x05,
+		Name: "Complex Nested",
+		Value: map[string]interface{}{
+			"1": "abc",
+			"2": map[string]interface{}{
+				"a": "str",
+				"b": float64(42),
+			},
 		},
-		AssumeNil: true,
-	},
-	{
-		Name:  "Nil Object",
-		Value: (map[string]interface{})(nil),
 		Binary: []byte{
-			// null Marker
-			0x05,
+			0x03,       // Object Marker
+			0x00, 0x01, // - Length(1: u16) BigEndian
+			0x31,       //   Key(1: []byte)
+			0x02,       //   - String Marker
+			0x00, 0x03, //     Length(3: u16) BigEndian
+			0x61, 0x62, 0x63, // Value(abc: []byte)
+			0x00, 0x01, // - Length(1: u16) BigEndian
+			0x32,       //   Key(2: []byte)
+			0x03,       //   - Object Marker
+			0x00, 0x01, //     Length(1: u16) BigEndian
+			0x61,       //       Key(a: []byte)
+			0x02,       //       - String Marker
+			0x00, 0x03, //         Length(3: u16) BigEndian
+			0x73, 0x74, 0x72, // Value(str: []byte)
+			0x00, 0x01, //     Length(1: u16) BigEndian
+			0x62,                                           //       Key(b: []byte)
+			0x00,                                           //       - Number Marker
+			0x40, 0x45, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Value(42: double) BigEndian
+			0x00, 0x00, // - Length(0: u16) BigEndian
+			0x09,       //   Key(empty)
+			0x00, 0x00, // - Length(0: u16) BigEndian
+			0x09, //   Key(empty)
 		},
-		AssumeNil: true,
 	},
-	{
-		Name:  "Nil Slice",
-		Value: ([]interface{})(nil),
-		Binary: []byte{
-			// null Marker
-			0x05,
-		},
-		AssumeNil: true,
-	},
-	{
-		Name:  "Nil ECMAArray",
-		Value: (ECMAArray)(nil),
-		Binary: []byte{
-			// null Marker
-			0x05,
-		},
-		AssumeNil: true,
-	},
-}
-
-var onlyEncodingTestCases = []testCase{
-	ptrNestedNumberTest,
-	objectTest,
 }
 
 var ptrNestedNumberTest = testCase{
 	Name:  "Number(Int ptr)",
-	Value: &number20ForAddr,
+	Value: intPtr(20),
 	Binary: []byte{
 		// Number Marker
 		0x00,
 		// Value(20: double) BigEndian
 		0x40, 0x34, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	},
+}
+
+type sampleObject struct {
+	A string `amf0:"a"`
+	B int    `amf0:"b"`
 }
 
 var objectTest = testCase{
