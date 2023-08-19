@@ -342,3 +342,19 @@ func TestDecodeStrictArrayHetero(t *testing.T) {
 		require.NotNil(t, err)
 	})
 }
+
+func TestDecodeUnknownMarker(t *testing.T) {
+	bin := []byte{
+		// Unknown Marker
+		0xff,
+	}
+
+	t.Run("Cannot decode", func(t *testing.T) {
+		r := bytes.NewReader(bin)
+		dec := NewDecoder(r)
+
+		var v interface{}
+		err := dec.Decode(&v)
+		require.Error(t, err)
+	})
+}
