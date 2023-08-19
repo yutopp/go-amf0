@@ -71,8 +71,17 @@ var testCases = []testCase{
 		},
 	},
 	{
-		Name:  "Nil Object",
+		Name:  "Nil Map",
 		Value: (map[string]interface{})(nil),
+		Binary: []byte{
+			// null Marker
+			0x05,
+		},
+		AssumeNil: true,
+	},
+	{
+		Name:  "Nil Object",
+		Value: (interface{})(nil),
 		Binary: []byte{
 			// null Marker
 			0x05,
